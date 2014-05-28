@@ -351,7 +351,7 @@ function createRandomCluster(size) {
 
 function addDummyImages() {
 
-	var list = ["ubuntu", "redhat", "suse", "linux", "wordpress", "windows", "centos", "fedora", "debian", "hadoop", "magento", "drupal"]
+	var list = ["ubuntu", "redhat", "suse", "linux", "wordpress", "windows", "centos", "fedora", "debian", "hadoop", "magento", "drupal", "android"]
 
 	for (var i in list) {
 		var image_id = inventResourceID();
@@ -607,6 +607,7 @@ function getNodeShape(type, name) {
 		else if (imagename.indexOf("fedora") != -1) { return nodePaths["fedora"]; }
 		else if (imagename.indexOf("debian") != -1) { return nodePaths["debian"]; }
 		else if (imagename.indexOf("suse") != -1) { return nodePaths["suse"]; }
+		else if (imagename.indexOf("android") != -1) { return nodePaths["android"]; }
 		else if (imagename.indexOf("hadoop") != -1 ||  imagename.indexOf("savanna") != -1 ||  imagename.indexOf("sahara") != -1 ) { return nodePaths["hadoop"]; }
 		else if (imagename.indexOf("wordpress") != -1) { return nodePaths["wordpress"]; }
 		else if (imagename.indexOf("magento") != -1) { return nodePaths["magento"]; }
