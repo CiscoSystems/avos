@@ -329,7 +329,7 @@ function createRandomCluster(size) {
 
 
 		var image = image_ids[Math.floor(Math.random() * image_ids.length)];
-		for (var i = Math.random() * 10 + 5; i > 0; i --) {
+		for (var i = Math.random() * 12 + 3; i > 0; i --) {
 			var instance_id = inventResourceID();
 			var instance_name = "dummy_server-" + instance_id;
 			clusterdata["servers"][instance_id] = {"OS-EXT-STS:task_state":null,"addresses":{},"links":[{"href":"http://us-texas-1.cisco.com:8774/v2/72cdf4b772444f55bdbf7b050021f628/servers/1e3c47f1-7275-4af4-b362-e527171f6b84","rel":"self"},{"href":"http://us-texas-1.cisco.com:8774/72cdf4b772444f55bdbf7b050021f628/servers/1e3c47f1-7275-4af4-b362-e527171f6b84","rel":"bookmark"}],"image":{"id":image,"links":[{"href":"http://us-texas-1.cisco.com:8774/72cdf4b772444f55bdbf7b050021f628/images/4ceaf1e6-69bb-49ad-8f15-a30f3dc4004b","rel":"bookmark"}]},"OS-EXT-STS:vm_state":"active","OS-SRV-USG:launched_at":"2014-05-16T18:57:07.000000","flavor":{"id":1,"links":[{"href":"http://us-texas-1.cisco.com:8774/72cdf4b772444f55bdbf7b050021f628/flavors/b4839a95-fed5-4198-bfd1-0d4105044e69","rel":"bookmark"}]},"id":instance_id,"security_groups":[{"name":"default"},{"name":"elasticsearch"}],"user_id":"d7776f89e40942bb9ec675cb9e26e52f","OS-DCF:diskConfig":"MANUAL","accessIPv4":"","accessIPv6":"","progress":0,"OS-EXT-STS:power_state":1,"OS-EXT-AZ:availability_zone":"alln01-1-csx","config_drive":"","status":"ACTIVE","updated":"2014-05-16T18:57:07Z","hostId":"a68025b956ba8e07af877f6c49443d304d2ee959aaafa7e3d55fb2d3","OS-SRV-USG:terminated_at":null,"key_name":"throwaway","name": instance_name,"created":"2014-05-16T18:56:59Z","tenant_id":"72cdf4b772444f55bdbf7b050021f628","os-extended-volumes:volumes_attached":[{"id":"83b95885-8798-4ee1-9e6c-d3291a889428"}],"metadata":{}}
@@ -351,7 +351,7 @@ function createRandomCluster(size) {
 
 function addDummyImages() {
 
-	var list = ["ubuntu", "redhat", "suse", "linux", "wordpress", "windows", "centos", "fedora", "debian", "hadoop", "magento", "drupal", "android"]
+	var list = ["ubuntu", "redhat", "suse", "linux", "wordpress", "windows", "centos", "fedora", "debian", "hadoop", "magento", "drupal", "android", "noideawhatthisimageis"]
 
 	for (var i in list) {
 		var image_id = inventResourceID();
@@ -361,6 +361,16 @@ function addDummyImages() {
 	function getStructure(id, name) {
 		return {"status":"ACTIVE","updated":"2014-05-02T21:39:06Z","name":name,"links":[{"href":"http://us-texas-1.cisco.com:8774/v2/72cdf4b772444f55bdbf7b050021f628/images/4ceaf1e6-69bb-49ad-8f15-a30f3dc4004b","rel":"self"},{"href":"http://us-texas-1.cisco.com:8774/72cdf4b772444f55bdbf7b050021f628/images/4ceaf1e6-69bb-49ad-8f15-a30f3dc4004b","rel":"bookmark"},{"href":"http://10.202.4.8:9292/72cdf4b772444f55bdbf7b050021f628/images/4ceaf1e6-69bb-49ad-8f15-a30f3dc4004b","type":"application/vnd.openstack.image","rel":"alternate"}],"created":"2014-05-02T21:25:48Z","minDisk":0,"progress":100,"minRam":0,"metadata":{},"id":id,"OS-EXT-IMG-SIZE:size":1033895936}
 	}
+}
+
+/**
+ * Simple function to create a random cluster, for testing
+ * @param  {[int]} size [The number of instances to create (roughly)]
+ */
+function developerMode(size) {
+	plot_heatmap = false;
+	addDummyImages();
+	createRandomCluster(size);
 }
 
 /**
@@ -652,12 +662,13 @@ function getIconOffset(type, axis, name) {
 		else if (imagename.indexOf("windows") != -1) { if (axis == "x") { return 11.7; } else { return 11 } }
 		else if (imagename.indexOf("linux") != -1 ||  imagename.indexOf("cirros") != -1 || imagename.indexOf("unix") != -1) { if (axis == "x") { return 10.8; } else { return 14.33 } }
 		else if (imagename.indexOf("redhat") != -1 || imagename.indexOf("rhel") != -1 ) { return 14.748858; } 
-		else if (imagename.indexOf("centos") != -1 ) { return 11.10; }
+		else if (imagename.indexOf("centos") != -1 ) { return 12.50; }
 		else if (imagename.indexOf("fedora") != -1 ) { if (axis == "x") { return 10; } else { return 12 } }
-		else if (imagename.indexOf("debian") != -1) { return 13.10 }
-		else if (imagename.indexOf("suse") != -1) { return 13.10 }
+		else if (imagename.indexOf("debian") != -1) { if (axis == "x") {return 12;} else {return 13.10} }
+		else if (imagename.indexOf("suse") != -1) { if (axis == "x") {return 14;} else {return 12} }
+		else if (imagename.indexOf("android") != -1) { if (axis == "x") {return 11;} else {return 13} }
 		else if (imagename.indexOf("drupal") != -1 ) { if (axis == "x") {return 11;} else {return 14} }
-		else if (imagename.indexOf("hadoop") != -1 ||  imagename.indexOf("savanna") != -1 ||  imagename.indexOf("sahara") != -1 ) { if (axis == "x") { return 13.3; } else { return 8 } }
+		else if (imagename.indexOf("hadoop") != -1 ||  imagename.indexOf("savanna") != -1 ||  imagename.indexOf("sahara") != -1 ) { if (axis == "x") { return 13.3; } else { return 10 } }
 		else if (imagename.indexOf("magento") != -1) {if (axis == "x") { return 12; } else { return 14 }}
 		else if (imagename.indexOf("wordpress") != -1) {return 14.748858}
 		else {  return 12; }
