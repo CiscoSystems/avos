@@ -5,7 +5,9 @@
     \___/  |_|     \_/\_/   \___||_||_|
     Analytics Visualisation on OpenStack
 
-Cisco's Project Orwell attempts to provide a feature rich and intuitive alternative dashboard to OpenStack that can give you a quick insight into the status of your cloud. Polling data through the OpenStack APIs and calculating everything client side using Javascript, Orwell keeps the load off your control node.
+Cisco's Project Orwell (Now AVOS) attempts to provide a feature rich and intuitive alternative dashboard to OpenStack that can give you a quick insight into the status of your cloud. Polling data through the OpenStack APIs and calculating everything client side using Javascript, Orwell keeps the load off your control node.
+
+This Repo has some untested changes and the current release is yet to be properly documented. Bear with us while this happens.
 
 Install Instructions
 -----------
@@ -25,9 +27,9 @@ in /etc/keystone/keystone.conf change the following:
 
 Then run:
 
-	sudo service keystone restart
-	sudo service nova-api restart
-	sudo service nova-compute restart
+  sudo service keystone restart
+  sudo service nova-api restart
+  sudo service nova-compute restart
               
 Now you need to change the OS parameters, currently hardcoded in static/js/main.js to the username, password, auth url and tenant of your cluster.
 
