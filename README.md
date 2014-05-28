@@ -12,7 +12,7 @@ AVOS is stateless*,  and uses the OpenStack APIs and processes the data client s
 
 Install Instructions
 -----------
-       Please bear with us while the repo is migrated and the instructions are updated, the current documentation is slightly out of date.
+Please bear with us while the repo is migrated and the instructions are updated, the current documentation is slightly out of date.
 
 on ubuntu, run:
 
