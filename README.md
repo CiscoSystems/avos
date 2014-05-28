@@ -50,5 +50,13 @@ The Network plot requires modifications to ceilometer not yet released. This Fea
 
 We've been using Ceilometer intervals of 5 seconds, by default Ceilometer stores data every 10 minutes. Don't expect your heatmaps to update often unless you change this in your publisher .yaml files.
 
+Questions
+-----------
+
+Any questions/bugs/feature requests? Get in touch:
+
+Alex Holden (ajonasho@cisco.com, a@lexholden.com)
+Matt Weeks (maweeks@cisco.com)
+
 
 
