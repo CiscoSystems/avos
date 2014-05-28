@@ -660,7 +660,7 @@ function getIconOffset(type, axis, name) {
 		else if (imagename.indexOf("hadoop") != -1 ||  imagename.indexOf("savanna") != -1 ||  imagename.indexOf("sahara") != -1 ) { if (axis == "x") { return 13.3; } else { return 8 } }
 		else if (imagename.indexOf("magento") != -1) {if (axis == "x") { return 12; } else { return 14 }}
 		else if (imagename.indexOf("wordpress") != -1) {return 14.748858}
-		else {  return 120; }
+		else {  return 12; }
 	}
 	else if (type == "netpub"){ return 23; }
 	else if (type == "net"){ if (axis == "x") { return 21.5; } else { return 22; } }
