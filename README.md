@@ -14,11 +14,11 @@ Install Instructions
 -----------
 Please bear with us while the repo is migrated and the instructions are updated, the current documentation is slightly out of date, but works with some elbow grease.
 
-on ubuntu, run:
+First, install the following on the computer you want to run AVOS on (not necessarily the same as your OS cluster). on ubuntu, run (on mac, use pip instead):
 
     sudo apt-get install python-webpy python-ceilometerclient python-novaclient
 
-You also need to make a few modifications to a standard (official manual guided) OpenStack install to allow the API's to be accessible.
+You also need to make a few modifications to a standard (official manual guided) OpenStack install to allow the API's to be accessible. These should be made to your control node.
 
 in /etc/keystone/keystone.conf change the following:
 
