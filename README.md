@@ -17,6 +17,10 @@ Please bear with us while the repo is migrated and the instructions are updated,
 First, install the following on the computer you want to run AVOS on (not necessarily the same as your OS cluster). on ubuntu, run (on mac, use pip instead):
 
     sudo apt-get install python-webpy python-ceilometerclient python-novaclient
+    
+Note: on a Mac, you'll have to download web.py seperately: http://webpy.org/static/web.py-0.37.tar.gz Then extract, and run:
+
+    python setup.py
 
 You also need to make a few modifications to a standard (official manual guided) OpenStack install to allow the API's to be accessible. These should be made to your control node.
 
