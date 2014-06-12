@@ -16,7 +16,7 @@ Please bear with us while the repo is migrated and the instructions are updated,
 
 First, install the following on the computer you want to run AVOS on (not necessarily the same as your OS cluster). on ubuntu, run (on mac, use pip instead):
 
-    sudo apt-get install python-webpy python-ceilometerclient python-novaclient
+    sudo apt-get install python-webpy python-ceilometerclient python-novaclient python-glanceclient python-neutronclient python-cinderclient
     
 Note: on a Mac, you'll have to download web.py seperately: http://webpy.org/static/web.py-0.37.tar.gz Then extract, and run:
 
