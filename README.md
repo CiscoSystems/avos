@@ -20,7 +20,7 @@ First, install the following on the computer you want to run AVOS on (not necess
     
 Note: on a Mac, you'll have to download web.py seperately: http://webpy.org/static/web.py-0.37.tar.gz Then extract, and run:
 
-    python setup.py
+    sudo python setup.py install
 
 You also need to make a few modifications to a standard (official manual guided) OpenStack install to allow the API's to be accessible. These should be made to your control node.
 
