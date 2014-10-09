@@ -100,28 +100,28 @@ $(document).ready(function() {
 
 	document.body.onmousedown = function() { 
 		//console.log("clicked")
-	    mouseDown = 1;
+		mouseDown = 1;
 	}
 	
 	document.body.onmouseup = function() {
 		//console.log("unclicked")
-	    mouseDown = 0;
+		mouseDown = 0;
 	}
 
 	if (d3.event) {
-    	// prevent browser's default behavior
-    	d3.event.preventDefault();
+		// prevent browser's default behavior
+		d3.event.preventDefault();
 	}
 
 	$(window).resize(function () {
-    	waitForFinalEvent(function(){
-    		var w = $('#pane-center').width();
+		waitForFinalEvent(function(){
+			var w = $('#pane-center').width();
 			var h = $('#pane-center').height();
 			//console.log("resizing pane to " + h + " " + w);
 			svg.attr("width", w).attr("height", h);
 			$("#pane-center canvas").attr("width", w).attr("height", h);
 
-    	}, 500, "some unique string");
+		}, 500, "some unique string");
 	});
 
 });
@@ -133,12 +133,12 @@ $(document).ready(function() {
  */
 function getServerData(callback, param) {
 	 $.ajax({
-        type: "POST",
-        data: {params: param, OS_endpoint: OS_endpoint, OS_username: OS_username, OS_password: OS_password, OS_tenant: OS_tenant},
-        success: function(data) {
+		type: "POST",
+		data: {params: param, OS_endpoint: OS_endpoint, OS_username: OS_username, OS_password: OS_password, OS_tenant: OS_tenant},
+		success: function(data) {
 			callback(data);
-        },
-    })
+		},
+	})
 }
 
 /**
@@ -147,25 +147,25 @@ function getServerData(callback, param) {
 function getOpenStackData() {
 	var token;
 	$.ajax({
-	    url: "http://10.0.130.118:8082",
-	    type: "POST",
-	    dataType: 'json',
-	    data: JSON.stringify({"method":"POST","url":"http://10.0.130.118:5000/v2.0/tokens","data":{
-	        "auth": {"tenantName": tenant, "passwordCredentials": {"username": "admin", "password": "ADMIN_PASS"}}
-	    },"keystone":"true"}),
-	    success: function( data ) {
-	        // console.log(data);
-	        token = data.access.token.id;
-                //console.log(token);
-	        console.log("We got a token");
-	        $.ajax({
-	            url: "http://10.0.130.118:8082",
-	        	type: "POST",
-	        	dataType: 'json',
-	        	data: JSON.stringify({"method":callMethod,"url":Durl,"data":userData,"token": token,"keystone":keystone}),
-	        	success: callback
-	        });
-	    }
+		url: "http://10.0.130.118:8082",
+		type: "POST",
+		dataType: 'json',
+		data: JSON.stringify({"method":"POST","url":"http://10.0.130.118:5000/v2.0/tokens","data":{
+			"auth": {"tenantName": tenant, "passwordCredentials": {"username": "admin", "password": "ADMIN_PASS"}}
+		},"keystone":"true"}),
+		success: function( data ) {
+			// console.log(data);
+			token = data.access.token.id;
+				//console.log(token);
+			console.log("We got a token");
+			$.ajax({
+				url: "http://10.0.130.118:8082",
+				type: "POST",
+				dataType: 'json',
+				data: JSON.stringify({"method":callMethod,"url":Durl,"data":userData,"token": token,"keystone":keystone}),
+				success: callback
+			});
+		}
 	});
 }
 
@@ -499,19 +499,19 @@ function developerMode(size) {
 function addEventListeners() {
 
   $('#entity-table tbody tr').click(function() {
-  	$('#entity-table tbody tr').removeClass('list-selected-item');
-    $(this).addClass('list-selected-item');
+	$('#entity-table tbody tr').removeClass('list-selected-item');
+	$(this).addClass('list-selected-item');
   });
 
   $('#entity-table tbody tr').dblclick(function() {
-    var aPos = $('#entity-table').dataTable().fnGetPosition(this);
-    var aData = $('#entity-table').dataTable().fnGetData(aPos[4]);
-    var type = aData[aPos][1];
-    if (type == "serv") {  	loadInstRightPaneInfoRef(aData[aPos][0])    }
-    else if (type == "rou") {  	loadRouRightPaneInfo(aData[aPos][0])    }
-    else if (type == "net") {  	loadNetRightPaneInfo(aData[aPos][0])    }
-    else if (type == "vol") {  	loadVolRightPaneInfo(aData[aPos][0])    }
-    else { 	console.log("I don't know what entity type you clicked, but I don't know what to do with it...")    }
+	var aPos = $('#entity-table').dataTable().fnGetPosition(this);
+	var aData = $('#entity-table').dataTable().fnGetData(aPos[4]);
+	var type = aData[aPos][1];
+	if (type == "serv") {  	loadInstRightPaneInfoRef(aData[aPos][0])    }
+	else if (type == "rou") {  	loadRouRightPaneInfo(aData[aPos][0])    }
+	else if (type == "net") {  	loadNetRightPaneInfo(aData[aPos][0])    }
+	else if (type == "vol") {  	loadVolRightPaneInfo(aData[aPos][0])    }
+	else { 	console.log("I don't know what entity type you clicked, but I don't know what to do with it...")    }
   });
 }
 
@@ -581,10 +581,10 @@ function updateForceGraph() {
 		.attr("stroke-width", function(d){if (d.type == "serv"){return 2} else {return 0}})
 		.attr("stroke", function(d){if (d.type == "serv") {return getServerStateColor(d.name)} else {return "transparent"} })
 		.call(force.drag).on("mousedown", disableRedraw).on("mouseup", enableRedraw).transition()
-      .duration(750)
-      .ease("elastic");
+	  .duration(750)
+	  .ease("elastic");
 
-    nodes.enter().append('text').text(function(d) {return d.name}).attr("id", function(d) { return "label-" + d.name }).attr('class', 'label hidden').attr('text-anchor', 'middle')
+	nodes.enter().append('text').text(function(d) {return d.name}).attr("id", function(d) { return "label-" + d.name }).attr('class', 'label hidden').attr('text-anchor', 'middle')
 
 	nodes.enter().append("path").attr("d", function(d) {return getNodeShape(d.type, d.name)}).attr("id", function(d) { return d.name })
 	.style("fill", function(d, i) {	return d3.rgb("#FFF"); }).attr("class" ,"nodeicon")
@@ -991,12 +991,12 @@ function closeSearch() {
 
 function loadListPane() {
 	$('#entity-table').dataTable( {
-	    "bPaginate": false,
-	    "bLengthChange": false,
-	    "bFilter": true,
-	    "bSort": true,
-	    "bInfo": false,
-	    "bAutoWidth": false
+		"bPaginate": false,
+		"bLengthChange": false,
+		"bFilter": true,
+		"bSort": true,
+		"bInfo": false,
+		"bAutoWidth": false
 	} );
 
 	$('#entity-table').dataTable().fnSetColumnVis( 0, false );
@@ -1116,32 +1116,32 @@ function loadNewNetworkPlot(element, data) {
 	//$(element).prepend("<div id='flows-label'></div>")
 
 	var diameter = 900,
-    	radius = diameter / 2,
-    	innerRadius = radius - 250;
+		radius = diameter / 2,
+		innerRadius = radius - 250;
 
 	var cluster = d3.layout.cluster()
-    	.size([360, innerRadius])
-    	.sort(null)
-    	.value(function(d) { return d.size; });
+		.size([360, innerRadius])
+		.sort(null)
+		.value(function(d) { return d.size; });
 
 	var bundle = d3.layout.bundle();
 
 	var line = d3.svg.line.radial()
-	    .interpolate("bundle")
-	    .tension(.85)
-	    .radius(function(d) { return d.y; })
-	    .angle(function(d) { return d.x / 180 * Math.PI; });
+		.interpolate("bundle")
+		.tension(.85)
+		.radius(function(d) { return d.y; })
+		.angle(function(d) { return d.x / 180 * Math.PI; });
 
 	var svg = d3.select(element).append("svg")
-	    .attr("width", diameter)
-	    .attr("height", diameter)
+		.attr("width", diameter)
+		.attr("height", diameter)
 	  .append("g")
-	    .attr("transform", "translate(" + radius + "," + radius + ")");
+		.attr("transform", "translate(" + radius + "," + radius + ")");
 
 	var link = svg.append("g").selectAll(".link"),
-	    node = svg.append("g").selectAll(".node");
+		node = svg.append("g").selectAll(".node");
 
-    var classes = getRandomNetworkPlotData();
+	var classes = getRandomNetworkPlotData();
 
 	var nodes = cluster.nodes(packageHierarchy(classes)),
 	  links = packageImports(nodes);
@@ -1202,20 +1202,20 @@ function packageHierarchy(classes) {
   var map = {};
 
   function find(name, data) {
-    var node = map[name], i;
-    if (!node) {
-      node = map[name] = data || {name: name, children: []};
-      if (name.length) {
-        node.parent = find(name.substring(0, i = name.lastIndexOf(".")));
-        node.parent.children.push(node);
-        node.key = name.substring(i + 1);
-      }
-    }
-    return node;
+	var node = map[name], i;
+	if (!node) {
+	  node = map[name] = data || {name: name, children: []};
+	  if (name.length) {
+		node.parent = find(name.substring(0, i = name.lastIndexOf(".")));
+		node.parent.children.push(node);
+		node.key = name.substring(i + 1);
+	  }
+	}
+	return node;
   }
 
   classes.forEach(function(d) {
-    find(d.name, d);
+	find(d.name, d);
   });
 
   return map[""];
@@ -1240,11 +1240,11 @@ function getColorFromLinkValue(value) {
 
 		if (percent > 50) {
 			r = 255;
-         	g = Math.round(255 * ((100 - percent) / 100));
+			g = Math.round(255 * ((100 - percent) / 100));
 		}
 		else {
 			g = 255;
-        	r = Math.round(255 * ((100 - percent) / 100));
+			r = Math.round(255 * ((100 - percent) / 100));
 		}
 
 		var result = "rgb(" + r + ", " + g + "," + b + ")"
@@ -1253,43 +1253,43 @@ function getColorFromLinkValue(value) {
 }
 
 function getColourTemp(maxVal, minVal, actual) {
-    var midVal = (maxVal - minVal)/2;
-    var intR;
-    var intG;
-    var intB = Math.round(0);
+	var midVal = (maxVal - minVal)/2;
+	var intR;
+	var intG;
+	var intB = Math.round(0);
 
-    if (actual >= midVal){
-         intR = 255;
-         intG = Math.round(255 * ((maxVal - actual) / (maxVal - midVal)));
-    }
-    else{
-        intG = 255;
-        intR = Math.round(255 * ((actual - minVal) / (midVal - minVal)));
-    }
+	if (actual >= midVal){
+		 intR = 255;
+		 intG = Math.round(255 * ((maxVal - actual) / (maxVal - midVal)));
+	}
+	else{
+		intG = 255;
+		intR = Math.round(255 * ((actual - minVal) / (midVal - minVal)));
+	}
 
-    return to_rgb(intR, intG, intB);
+	return to_rgb(intR, intG, intB);
 }
 
 // Return a list of imports for the given array of nodes.
 function packageImports(nodes) {
   var map = {},
-      imports = [];
+	  imports = [];
 
   // Compute a map from name to node.
   nodes.forEach(function(d) {
-    map[d.name] = d;
+	map[d.name] = d;
   });
   //console.log(map)
 
   // For each import, construct a link from the source to target node.
   nodes.forEach(function(d) {
-    if (d.imports) d.imports.forEach(function(i) {
-    	//console.log(d.name);
-    	//console.log(i)
-    	//console.log(d.name)
-    	//console.log("connection: " + map[d.name]["name"] + " to " + map[i.name]["name"] + " with a rate of " + i.value);
+	if (d.imports) d.imports.forEach(function(i) {
+		//console.log(d.name);
+		//console.log(i)
+		//console.log(d.name)
+		//console.log("connection: " + map[d.name]["name"] + " to " + map[i.name]["name"] + " with a rate of " + i.value);
 		imports.push({source: map[d.name], target: map[i.name], value: i.value});
-    });
+	});
   });
 
   //console.log(imports);
@@ -1311,13 +1311,13 @@ function generateServersForNetworkPlot(number) {
   var server = 0;
 
   while (servers > 0) {
-    server++;
-    var vm = 0
-    for (i = 0; i < Math.random() * 20; i++) {
-      vm ++;
-      temp.push("BD2-" + server + ".server" + vm)
-      servers --;
-    }
+	server++;
+	var vm = 0
+	for (i = 0; i < Math.random() * 20; i++) {
+	  vm ++;
+	  temp.push("BD2-" + server + ".server" + vm)
+	  servers --;
+	}
   }
 
   return temp;
@@ -1348,19 +1348,19 @@ function turnServerListIntoRandomConnections(list) {
   var data = [];
 
   for (var i = 0; i < list.length; i++) {
-    var node = {"name": "servers." + list[i]["name"], "imports": []}
-    data.push(node)
+	var node = {"name": "servers." + list[i]["name"], "imports": []}
+	data.push(node)
   }
   //console.log(data)
   //console.log(data.length)
   for (var j = 0; j < data.length; j++) {
-    //console.log("j = " + j)
-    for (var k = 0; k < data.length; k++) {
-      if (Math.random() >= 0.95){
-        data[j]["imports"].push(data[k]["name"])
-        console.log(data[k]);
-      }
-    }
+	//console.log("j = " + j)
+	for (var k = 0; k < data.length; k++) {
+	  if (Math.random() >= 0.95){
+		data[j]["imports"].push(data[k]["name"])
+		console.log(data[k]);
+	  }
+	}
   }
   return data;
   // console.log(data);
@@ -1373,45 +1373,45 @@ function turnServerListIntoConnections(list) {
   var data = [];
 
   for (var i = 0; i < list.length; i++) {
-    var node = {"name": "servers." + list[i]["name"], "instance_id" : list[i]["instance_id"], "imports": []}
-    //console.log(node);
-    data.push(node)
+	var node = {"name": "servers." + list[i]["name"], "instance_id" : list[i]["instance_id"], "imports": []}
+	//console.log(node);
+	data.push(node)
   }
   data.push({"name": "servers.OUTSIDE WORLD", "instance_id" : "OUTSIDE", "imports": []})
 
   //console.log("Pushed all nodes into data");
   
   for (var j = 0; j < data.length; j++) {
-  	if (data[j]["name"] != "servers.OUTSIDE WORLD" ) {
-  		var latestdate = Object.keys(clusterdata["servers"][data[j]["instance_id"]]["statistics"]["network.flow.bytes"]).sort().pop();
-  		var flow = clusterdata["servers"][data[j]["instance_id"]]["statistics"]["network.flow.bytes"][latestdate];
-	    if (flow !== undefined) {
-	    	//console.log(flow);
-	    	var x = Object.keys(flow);
-	    	//console.log(x)
-	    	for (var k = 0; k < x.length; k++) {
-	    		if (x[k].indexOf("parameters.") != -1 && x[k].indexOf("dhcp") == -1 ) {
-	    			//d.key.substring(10,19)
-	    			var connection = x[k].substring(11,100);
-	    			var val = flow[x[k]]
-	    			if (val > current_max) {
-	    				current_max = parseInt(val);
-	    			}
-	    			//console.log("Val = " + val);
-	    			//console.log(connection);
-	    			if (connection != "OUTSIDE" && clusterdata["servers"][connection] !== undefined) {
-	    				var con = "servers." + clusterdata["servers"][connection]["OS-EXT-SRV-ATTR:hypervisor_hostname"] + "." + clusterdata["servers"][connection]["name"];
-	    				//console.log(con)
-	    				//data[j]["imports"].push(con);
-	    				data[j]["imports"].push({"name": con, "value": val});
-	    				//console.log(data[j]);
-	    			}
-	    			else if (connection == "OUTSIDE") {
-	    				data[j]["imports"].push({"name": "servers.OUTSIDE WORLD", "value": val});
-	    			}
-	    		}
-	    	}
-	    }
+	if (data[j]["name"] != "servers.OUTSIDE WORLD" ) {
+		var latestdate = Object.keys(clusterdata["servers"][data[j]["instance_id"]]["statistics"]["network.flow.bytes"]).sort().pop();
+		var flow = clusterdata["servers"][data[j]["instance_id"]]["statistics"]["network.flow.bytes"][latestdate];
+		if (flow !== undefined) {
+			//console.log(flow);
+			var x = Object.keys(flow);
+			//console.log(x)
+			for (var k = 0; k < x.length; k++) {
+				if (x[k].indexOf("parameters.") != -1 && x[k].indexOf("dhcp") == -1 ) {
+					//d.key.substring(10,19)
+					var connection = x[k].substring(11,100);
+					var val = flow[x[k]]
+					if (val > current_max) {
+						current_max = parseInt(val);
+					}
+					//console.log("Val = " + val);
+					//console.log(connection);
+					if (connection != "OUTSIDE" && clusterdata["servers"][connection] !== undefined) {
+						var con = "servers." + clusterdata["servers"][connection]["OS-EXT-SRV-ATTR:hypervisor_hostname"] + "." + clusterdata["servers"][connection]["name"];
+						//console.log(con)
+						//data[j]["imports"].push(con);
+						data[j]["imports"].push({"name": con, "value": val});
+						//console.log(data[j]);
+					}
+					else if (connection == "OUTSIDE") {
+						data[j]["imports"].push({"name": "servers.OUTSIDE WORLD", "value": val});
+					}
+				}
+			}
+		}
 	}
   }
   //console.log(data);
@@ -1447,7 +1447,7 @@ function saveNetworkFlows(data) {
 
 $('#myLargeModal').on('hide.bs.modal', function () {
 	console.log("Modal Hidden");
-  	net_flow_live = false;
+	net_flow_live = false;
 });
 
 function openNetworkPlot() {
@@ -1594,8 +1594,8 @@ function loadInstRightPaneInfoRef(element) {
 	$('#right-instance-title').fitText(0.8, {minFontSize: '20px', maxFontSize: '80px'});
 
 	$('[data-toggle="tooltip"]').tooltip({
-	    'placement': 'bottom',
-	    'html': true
+		'placement': 'bottom',
+		'html': true
 	});
 
 }
@@ -1701,9 +1701,9 @@ function createGraph(graphData, selector) {
 		height: 50,
 	});
 	var hoverDetail = new Rickshaw.Graph.HoverDetail( {
-	    graph: graph,
-	    xFormatter: function(x) { return x + "seconds" },
-	    yFormatter: function(y) { return Math.floor(y) + " percent" }
+		graph: graph,
+		xFormatter: function(x) { return x + "seconds" },
+		yFormatter: function(y) { return Math.floor(y) + " percent" }
 	} );
 	graph.render();
 }
@@ -2002,13 +2002,13 @@ function showOptions (Layout, key, debugOpts) {
 var waitForFinalEvent = (function () {
   var timers = {};
   return function (callback, ms, uniqueId) {
-    if (!uniqueId) {
-      uniqueId = "Don't call this twice without a uniqueId";
-    }
-    if (timers[uniqueId]) {
-      clearTimeout (timers[uniqueId]);
-    }
-    timers[uniqueId] = setTimeout(callback, ms);
+	if (!uniqueId) {
+	  uniqueId = "Don't call this twice without a uniqueId";
+	}
+	if (timers[uniqueId]) {
+	  clearTimeout (timers[uniqueId]);
+	}
+	timers[uniqueId] = setTimeout(callback, ms);
   };
 })();
 
