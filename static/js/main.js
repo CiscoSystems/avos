@@ -558,7 +558,8 @@ function loadNewForceGraph() {
 
 		// @TODO: Below is a very silly way to do this, couldn't think of another for now.
 		nodes.attr("transform", function(d) { return "translate(" + (d.x - getIconOffset(d.type, "x", d.name)) + "," + (d.y - getIconOffset(d.type, "y", d.name)) + "), scale(" + getIconScale(d.type, d.name) + ")"; })
-				.attr("child", function(d) { $("#circle" + d.name).attr("transform", "translate(" + d.x + "," + d.y + ")"); return "updated"; });
+				.attr("child", function(d) { $("#circle" + d.name).attr("transform", "translate(" + d.x + "," + d.y + ")"); return "updated"; })
+				.attr("text", function(d) { $("#label-" + d.name).attr("transform", "translate(" + d.x + "," + (d.y + 40) + ")"); return "updated"; });
 
 	});
 }
@@ -572,6 +573,7 @@ function updateForceGraph() {
 	edges.exit().remove();
 
 	nodes = nodes.data(forceGraphData.nodes, function(d) {  return d.name;})
+
 	nodes.enter().append("circle").attr("id", function(d) { return "circle" + d.name })
 		.attr("r", function(d) { return d.size })
 		.style("opacity", function(d) {return getNodeOpacity(d.name)})
@@ -581,6 +583,8 @@ function updateForceGraph() {
 		.call(force.drag).on("mousedown", disableRedraw).on("mouseup", enableRedraw).transition()
       .duration(750)
       .ease("elastic");
+
+    nodes.enter().append('text').text(function(d) {return d.name}).attr("id", function(d) { return "label-" + d.name }).attr('class', 'label hidden').attr('text-anchor', 'middle')
 
 	nodes.enter().append("path").attr("d", function(d) {return getNodeShape(d.type, d.name)}).attr("id", function(d) { return d.name })
 	.style("fill", function(d, i) {	return d3.rgb("#FFF"); }).attr("class" ,"nodeicon")
@@ -1965,6 +1969,20 @@ function toggleStateManagement ( skipAlert, mode ) {
 	}
 	else if (!skipAlert)
 		alert( 'This layout will save & restore its last state \nwhen the page is refreshed.' );
+}
+
+var labelVisible = false;
+
+function toggleLabels() {
+	if (labelVisible == true) {
+		$('.label').attr('class', 'label hidden');
+		labelVisible = false;
+	} else {
+		$('.label').attr('class', 'label');
+		labelVisible = true;
+	}
+
+	
 }
 
 
