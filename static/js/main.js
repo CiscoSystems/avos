@@ -634,6 +634,7 @@ function redraw(entity) {
  *	Reset the viewport back to its initial zoom/pan
  */
 function resetZoom() {
+	node_clicked = false;
 	zoom.scale(1);
 	zoom.translate([0,0]);
 	innervis.attr("transform", "translate(" + zoom.translate() + ")" + " scale(" + zoom.scale() + ")");
