@@ -46,7 +46,7 @@ svg, g { background-color: none; }
 
 /* SVG ELEMENTS */
 
-.label { z-index: 1000; cursor: default; background-color: #AAA;}
+.label { z-index: 1000; cursor: default;}
 
  canvas {pointer-events: none;}
  .nodeicon {pointer-events: none;}
