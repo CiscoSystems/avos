@@ -488,7 +488,7 @@ function addDummyImages() {
  * @param  {[int]} size [The number of instances to create (roughly)]
  */
 function developerMode(size) {
-	plot_heatmap = false;
+	//plot_heatmap = false;
 	addDummyImages();
 	createRandomCluster(size);
 }
@@ -559,7 +559,7 @@ function loadNewForceGraph() {
 		// @TODO: Below is a very silly way to do this, couldn't think of another for now.
 		nodes.attr("transform", function(d) { return "translate(" + (d.x - getIconOffset(d.type, "x", d.name)) + "," + (d.y - getIconOffset(d.type, "y", d.name)) + "), scale(" + getIconScale(d.type, d.name) + ")"; })
 				.attr("child", function(d) { $("#circle" + d.name).attr("transform", "translate(" + d.x + "," + d.y + ")"); return "updated"; })
-				.attr("text", function(d) { $("#label-" + d.name).attr("transform", "translate(" + d.x + "," + (d.y + 40) + ")"); return "updated"; });
+				.attr("text", function(d) { $("#label-" + d.name).attr("transform", "translate(" + d.x + "," + (d.y + getNodeTextOffsetY(d.type)) + ")"); return "updated"; });
 
 	});
 }
@@ -584,7 +584,7 @@ function updateForceGraph() {
 	  .duration(750)
 	  .ease("elastic");
 
-	nodes.enter().append('text').text(function(d) { return clusterdata[clusterdata["lookup"][d.name]][d.name]["name"] }).attr("id", function(d) { return "label-" + d.name }).attr('class', 'label hidden').attr('text-anchor', 'middle')
+	nodes.enter().append('text').text(function(d) { return clusterdata[clusterdata["lookup"][d.name]][d.name]["name"] }).attr("id", function(d) { return "label-" + d.name }).attr('class', 'label hidden').attr('text-anchor', 'middle');
 
 	nodes.enter().append("path").attr("d", function(d) {return getNodeShape(d.type, d.name)}).attr("id", function(d) { return d.name })
 	.style("fill", function(d, i) {	return d3.rgb("#FFF"); }).attr("class" ,"nodeicon")
@@ -717,10 +717,16 @@ function getNodeOpacity(name) {
 function getNodeLinkSize(type) {
 	// @TODO Add the ability to collapse a network, which sets the link length to very small and makes instances zoom into and partially hide behind it's network
 	if (type == "serv") { return 150; }
-	else if (type == "vol") { return 1;	}
+	else if (type == "vol") { return 25;	}
 	else if (type == "net"){ return 200; }
 	else if (type == "rou"){ return 200; }
 	else { return 550; }
+}
+
+function getNodeTextOffsetY(type) {
+	if (type == "serv") { return 30; }
+	else if (type == "vol") { return 20;	}
+	else { return 40; }
 }
 
 /**
@@ -1981,8 +1987,16 @@ function toggleLabels() {
 		$('.label').attr('class', 'label');
 		labelVisible = true;
 	}
+}
 
-	
+function toggleHeatmap() {
+	if (plot_heatmap == false) {
+		plot_heatmap = true;
+		updateHeatmapReal();
+	} else {
+		plot_heatmap = false;
+		updateHeatmapReal();
+	}
 }
 
 
