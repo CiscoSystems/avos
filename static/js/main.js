@@ -584,7 +584,7 @@ function updateForceGraph() {
 	  .duration(750)
 	  .ease("elastic");
 
-	nodes.enter().append('text').text(function(d) {return d.name}).attr("id", function(d) { return "label-" + d.name }).attr('class', 'label hidden').attr('text-anchor', 'middle')
+	nodes.enter().append('text').text(function(d) { return clusterdata[clusterdata["lookup"][d.name]][d.name]["name"] }).attr("id", function(d) { return "label-" + d.name }).attr('class', 'label hidden').attr('text-anchor', 'middle')
 
 	nodes.enter().append("path").attr("d", function(d) {return getNodeShape(d.type, d.name)}).attr("id", function(d) { return d.name })
 	.style("fill", function(d, i) {	return d3.rgb("#FFF"); }).attr("class" ,"nodeicon")
