@@ -12,7 +12,7 @@ AVOS is stateless*,  and uses the OpenStack APIs and processes the data client s
 
 Install Instructions
 -----------
-Please bear with us while the repo is migrated and the instructions are updated, the current documentation is slightly out of date, but works with some elbow grease.
+Please bear with us while the repo is migrated and the instructions are updated, the current documentation is slightly out of date, but works with some elbow grease. Is also in the process of being migrated into a horizon component.
 
 First, install the following on the computer you want to run AVOS on (not necessarily the same as your OS cluster). on ubuntu, run (on mac, use pip instead):
 
@@ -60,7 +60,6 @@ Questions
 Any questions/bugs/feature requests? Get in touch:
 
 Alex Holden (ajonasho@cisco.com, a@lexholden.com)
-Matt Weeks (maweeks@cisco.com)
 
 
 
