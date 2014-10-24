@@ -5,9 +5,14 @@
  *   Alex Holden (a@lexholden.com)
  *
  */
-
+/*
 html { overflow: hidden; height: 100%; border: none; }
 body { font-size: 100%; zoom: 1; overflow: hidden; width: auto; height: auto; margin: 0px; position: absolute; top: 0px; bottom: 0px; left: 0px; right: 0px; cursor: auto;}
+*/
+
+
+.layoutwrap { position: relative; margin: 0 -18px 0 -19px; height: calc(100%) }
+.ui-layout-container { position: absolute; height: 1000px; width: 100%; top: 0; bottom: 0; left: 0; right: 0;}
 
 .bottom { margin: 15px; bottom: 0; position: absolute; }
 .right { right: 0; position: absolute;}
@@ -635,3 +640,4 @@ tr.even.gradeU td.sorting_1 { background-color:#d5d5d5; }
 
 table.KeyTable td { border:3px solid transparent; }
 table.KeyTable td.focus { border:3px solid #36F; }
+

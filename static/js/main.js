@@ -3,7 +3,6 @@
  *
  * Copyright (c) 2014 Cisco Systems 
  *   Alex Holden <a@lexholden.com> <ajonasho@cisco.com>
- *   Matt Weeks <maweeks@cisco.com>
  *
  */
 
@@ -1890,7 +1889,7 @@ function loadPaneLayout() {
 	// @TODO: Perhaps these could be better styled to have obvious "Pin Open" Buttons where needed
 
 	// this layout could be created with NO OPTIONS - but showing some here just as a sample...
-	myLayout = $('body').layout({
+	myLayout = $('.ui-layout-container').layout({
 
 		//	reference only - these options are NOT required because 'true' is the default
 		closable:							true,	// pane can open & close
