@@ -4,9 +4,17 @@
 
 {% block main %}
 
-<link type='text/css' rel='stylesheet' href='/static/avos/css/style.css'>
+<iframe src="http://192.168.57.20:8080/" style="height: calc(100%); width: 100%; overflow: hidden; min-height: 1022px"></iframe>
 
-<script type='text/javascript' src='/static/avos/js/jquery-latest.js'></script>
+<style>
+	
+#content_body { padding-right: 0 !important; padding-left: 236px !important;}
+
+</style>
+
+<!-- <link type='text/css' rel='stylesheet' href='/static/avos/css/style.css'> -->
+
+<!-- <script type='text/javascript' src='/static/avos/js/jquery-latest.js'></script>
 <script type='text/javascript' src='/static/avos/js/jquery-layout-latest.js'></script>
 <script type='text/javascript' src='/static/avos/js/jquery.dataTables.js'></script>
 <script type='text/javascript' src='/static/avos/js/jquery.fittext.js'></script>
@@ -15,13 +23,13 @@
 <script type='text/javascript' src="/static/avos/js/rickshaw.js"></script>
 <script type='text/javascript' src="/static/avos/js/bootstrap.js"></script>
 <script type='text/javascript' src='/static/avos/js/credentials.js'></script>
-<script type='text/javascript' src='/static/avos/js/main.js'></script>
+<script type='text/javascript' src='/static/avos/js/main.js'></script> -->
 
-<div class="layoutwrap">
-<div  class='ui-layout-container'>
+<!-- <div class="layoutwrap">
+<div  class='ui-layout-container'> -->
 
 	<!-- Modal -->
-	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<!-- 	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 	  <div class="modal-dialog">
 	    <div class="modal-content">
 	      <div class="modal-header">
@@ -37,10 +45,10 @@
 	      </div>
 	    </div>
 	  </div>
-	</div>
+	</div> -->
 
 	<!-- Large Modal -->
-	<div class="modal fade bs-example-modal-lg" id="myLargeModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+<!-- 	<div class="modal fade bs-example-modal-lg" id="myLargeModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
 	  <div class="modal-dialog modal-lg" style="width: 80%; max-width: 1000px">
 	    <div class="modal-content">
 			<div class="modal-header">
@@ -56,10 +64,10 @@
 	      </div>
 	    </div>
 	  </div>
-	</div>
+	</div> -->
 
 	<!-- Search -->
-	<div class="btn-group" id="fake-search">
+<!-- 	<div class="btn-group" id="fake-search">
 	    <div class="input-group">
 	      <input type="text" class="form-control" id="fake-search-box" placeholder="StackSearch..." onfocus="openSearch()" onclick="openSearch()" onkeyup="filter()">
 	      <div class="input-group-btn">
@@ -75,16 +83,16 @@
 	        </ul>
 	      </div>
 	    </div>
-	</div>
+	</div> -->
 
 
 
 <!-- manually attach allowOverflow method to pane -->
-<div id='pane-north' class='ui-layout-north ui-layout-pane ui-layout-pane-north'>
+<!-- <div id='pane-north' class='ui-layout-north ui-layout-pane ui-layout-pane-north'>
 <div id="graph"></div>
-</div>
+</div> -->
 <!-- allowOverflow auto-attached by option: west__showOverflowOnHover = true -->
-<div id='pane-west' class='ui-layout-west ui-layout-pane ui-layout-pane-west'>
+<!-- <div id='pane-west' class='ui-layout-west ui-layout-pane ui-layout-pane-west'>
 	<div class="fill-padder" style="padding-top: 50px">
 		<table cellpadding="0" cellspacing="0" border="0" class="display" id="entity-table">
         <thead>
@@ -98,23 +106,22 @@
         </tbody>
       </table>
 	</div>
-</div>
+</div> -->
 
-<div id='pane-south' class='ui-layout-south ui-layout-pane ui-layout-pane-south'>
-		<p class='center compress'>Debugging Buttons:</p>
-	<!-- these buttons have event added dynamically in document.ready -->
-	<button id='openAllPanes' class='ui-layout-button-open ui-layout-button-open-north ui-layout-button-open-south ui-layout-button-open-west ui-layout-button-open-east' title='Open'>Open All Panes</button>
+<!-- <div id='pane-south' class='ui-layout-south ui-layout-pane ui-layout-pane-south'>
+		<p class='center compress'>Debugging Buttons:</p> -->
+<!-- 	<button id='openAllPanes' class='ui-layout-button-open ui-layout-button-open-north ui-layout-button-open-south ui-layout-button-open-west ui-layout-button-open-east' title='Open'>Open All Panes</button>
 	<button id='closeAllPanes' class='ui-layout-button-close ui-layout-button-close-north ui-layout-button-close-south ui-layout-button-close-west ui-layout-button-close-east' title='Close'>Close All Panes</button>
 	<button id='toggleAllPanes' class='ui-layout-button-toggle ui-layout-button-toggle-north ui-layout-button-toggle-south ui-layout-button-toggle-west ui-layout-button-toggle-east'>Toggle All Panes</button>
 	<button id='btnReset' class='hidden' onclick='myLayout.loadState(stateResetSettings, true)' style='display: inline-block;'>Reset State</button>
 	<button onclick='debugData(myLayout.options.west)'>West Options</button>
-</div>
+</div> -->
 
-<div id='pane-east' class='ui-layout-east ui-layout-pane ui-layout-pane-east'>
-	<!--Here goes your current Dataset on document.ready -->
-</div>
+<!-- <div id='pane-east' class='ui-layout-east ui-layout-pane ui-layout-pane-east'>
+	
+</div> -->
 
-<div id='pane-center' class='ui-layout-center ui-layout-pane ui-layout-pane-center ui-layout-pane-hover ui-layout-pane-center-hover ui-layout-pane-open-hover ui-layout-pane-center-open-hover'>
+<!-- <div id='pane-center' class='ui-layout-center ui-layout-pane ui-layout-pane-center ui-layout-pane-hover ui-layout-pane-center-hover ui-layout-pane-open-hover ui-layout-pane-center-open-hover'>
 	<div class="bottom">
 		<div class="btn-group">
 			<div class="btn-group dropup">
@@ -144,14 +151,14 @@
 			<button id="btn-legend" type="button" class="btn btn-default" title="Help" data-toggle="modal" data-target="#myModal" onclick="loadHelp()"><span class="glyphicon glyphicon-question-sign"></span></button>
 			<button id="btn-settings" type="button" class="btn btn-default" title="Settings" data-toggle="modal" data-target="#myModal" onclick="loadSettings()"><span class="glyphicon glyphicon-wrench"></span></button>
 		</div>
-	</div>
+	</div> -->
 
 
 
 	<!-- <input id ='fake-search' class='search' type='text' name='search' value='Search' /> -->
 	<!-- Here should load the central pane on document.ready -->
+<!-- </div>
 </div>
-</div>
-</div>
+</div> -->
     {{ table.render }}
 {% endblock %}

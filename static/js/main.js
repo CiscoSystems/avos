@@ -89,7 +89,7 @@ $(document).ready(function() {
 	// TODO: display a loading image in the center pane until cluster data is loaded
 	loadNewForceGraph();
 	setButtonStates();
-	loadTopGraph();
+	//loadTopGraph();
 	loadListPane();
 
 	//getServerData(setServers, "get servers");
@@ -931,6 +931,7 @@ function saveCpuUtil(data) {
  * @param  {[Object]} data [Optional: CPU Data]
  */
 function updateHeatmapReal(data) {
+	// console.log("let's update the heatmap!");
 	heatmap.store.setDataSet({ max: 100, data: []});
 	// This condition will never be met now, kept in in case.
 	if (data) {
@@ -940,6 +941,7 @@ function updateHeatmapReal(data) {
 			//console.log(node);
 			var node_heat_x = $(node).position()['left'] + offsetx;
 			var node_heat_y = $(node).position()['top'] + offsety;
+			console.log(util[i]);
 			heatmap.store.addDataPoint(node_heat_x, node_heat_y, util[i]/*getElementHeat(Object.keys(servers)[i])*/);
 		}
 	}
@@ -947,8 +949,13 @@ function updateHeatmapReal(data) {
 		for (var i in clusterdata["servers"]) {
 			if (clusterdata["servers"][i]["statistics"]["cpu_util"] && clusterdata["servers"][i]["status"] != "SHUTOFF") {
 				var node = "#circle" + i;
-				var latestdate = Object.keys(clusterdata["servers"][i]["statistics"]["cpu_util"]).sort().pop()
-				var value = clusterdata["servers"][i]["statistics"]["cpu_util"][latestdate];
+				//var latestdate = Object.keys(clusterdata["servers"][i]["statistics"]["cpu_util"]).sort().pop()
+				var value = clusterdata["servers"][i]["statistics"]["cpu_util"][this.length];
+				if (value === undefined) {
+					value = 0;
+					value -= (10 * Math.random()) * (Math.log(Math.random()));
+				}
+				//console.log(value);
 				var node_heat_x = $(node).position()['left'] + offsetx;
 				var node_heat_y = $(node).position()['top'] + offsety;
 				heatmap.store.addDataPoint(node_heat_x, node_heat_y, value);
