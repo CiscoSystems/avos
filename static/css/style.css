@@ -10,19 +10,19 @@ html { overflow: hidden; height: 100%; border: none; }
 body { font-size: 100%; zoom: 1; overflow: hidden; width: auto; height: auto; margin: 0px; position: absolute; top: 0px; bottom: 0px; left: 0px; right: 0px; cursor: auto;}
 */
 
-
-.layoutwrap { position: relative; margin: 0 -18px 0 -19px; height: calc(100%) }
-.ui-layout-container { position: absolute; height: 1000px; width: 100%; top: 0; bottom: 0; left: 0; right: 0;}
+#content_body {padding-left: 236px; padding-right: 0px;}
+.layoutwrap { position: relative; margin: 0; height: 900px; width: 100%; overflow: hidden; }
+.ui-layout-container { position: absolute; height: calc(100%); width: 100%; top: 0; bottom: 0; left: 0; right: 0;}
 
 .bottom { margin: 15px; bottom: 0; position: absolute; }
-.right { right: 0; position: absolute;}
+.right { right: 0; position: absolute; width: auto;}
 .center {text-align: center;}
 .left {text-align: left;}
 
 .compress {font-weight: bold; line-height: 20%;}
 
-#fake-search {	position: absolute; top: 15px; left: 15px ; width: 200px; z-index: 1020;}
-.fake-search {	position: absolute; top: 15px; left: 15px ; width: 200px; z-index: 1020;}
+#fake-search {	position: absolute; top: 15px; right: 15px ; width: 200px; z-index: 1020;}
+.fake-search {	position: absolute; top: 15px; right: 15px ; width: 200px; z-index: 1020;}
 #real-search {}
 .search {padding: 5px; color: #888;}
 #flows-label {position: absolute; right: 10px; top: 10px; height: 1em; font-weight: bold;}

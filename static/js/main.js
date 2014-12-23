@@ -76,6 +76,9 @@ var offsety = 18;
 var get_cpu_util = true
 var net_flow_live = false
 
+var words = "Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua Ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum"
+var word = words.split(' ');
+
 //var ELEMENTS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 /*
@@ -166,6 +169,25 @@ function getOpenStackData() {
 			});
 		}
 	});
+}
+
+function randbetween(low, high) {
+	return Math.floor(Math.random() * high) + low;
+}
+
+function generateRandomWord() {
+	return word[Math.floor(Math.random() * word.length)];
+}
+
+function generateRandomString() {
+	var length = randbetween(3, 9);
+	var string = "";
+
+	for (var i = 0; i < length; i++) {
+		string = string + "-" + generateRandomWord() ;
+	}
+
+	return string;
 }
 
 // @TODO: We want a better lookup table for added entities in clusterdata, where we can pass an instance ID and recieve it's type for future lookup
@@ -450,7 +472,7 @@ function createRandomCluster(size) {
 		var image = image_ids[Math.floor(Math.random() * image_ids.length)];
 		for (var i = Math.random() * 12 + 3; i > 0; i --) {
 			var instance_id = inventResourceID();
-			var instance_name = "dummy_server-" + instance_id;
+			var instance_name = "inst" + generateRandomString();
 			clusterdata["servers"][instance_id] = {"OS-EXT-STS:task_state":null,"addresses":{},"links":[{"href":"http://us-texas-1.cisco.com:8774/v2/72cdf4b772444f55bdbf7b050021f628/servers/1e3c47f1-7275-4af4-b362-e527171f6b84","rel":"self"},{"href":"http://us-texas-1.cisco.com:8774/72cdf4b772444f55bdbf7b050021f628/servers/1e3c47f1-7275-4af4-b362-e527171f6b84","rel":"bookmark"}],"image":{"id":image,"links":[{"href":"http://us-texas-1.cisco.com:8774/72cdf4b772444f55bdbf7b050021f628/images/4ceaf1e6-69bb-49ad-8f15-a30f3dc4004b","rel":"bookmark"}]},"OS-EXT-STS:vm_state":"active","OS-SRV-USG:launched_at":"2014-05-16T18:57:07.000000","flavor":{"id":1,"links":[{"href":"http://us-texas-1.cisco.com:8774/72cdf4b772444f55bdbf7b050021f628/flavors/b4839a95-fed5-4198-bfd1-0d4105044e69","rel":"bookmark"}]},"id":instance_id,"security_groups":[{"name":"default"},{"name":"elasticsearch"}],"user_id":"d7776f89e40942bb9ec675cb9e26e52f","OS-DCF:diskConfig":"MANUAL","accessIPv4":"","accessIPv6":"","progress":0,"OS-EXT-STS:power_state":1,"OS-EXT-AZ:availability_zone":"alln01-1-csx","config_drive":"","status":"ACTIVE","updated":"2014-05-16T18:57:07Z","hostId":"a68025b956ba8e07af877f6c49443d304d2ee959aaafa7e3d55fb2d3","OS-SRV-USG:terminated_at":null,"key_name":"throwaway","name": instance_name,"created":"2014-05-16T18:56:59Z","tenant_id":"72cdf4b772444f55bdbf7b050021f628","os-extended-volumes:volumes_attached":[{"id":"83b95885-8798-4ee1-9e6c-d3291a889428"}],"metadata":{}}
 			clusterdata["servers"][instance_id]["addresses"][network_name] = [{"OS-EXT-IPS-MAC:mac_addr":"fa:16:3e:68:d6:35","version":4,"addr":"192.168.20.19","OS-EXT-IPS:type":"fixed"}];
 			addServerToDash(instance_id)
@@ -458,7 +480,7 @@ function createRandomCluster(size) {
 			if (Math.random() > 0.3) {
 				for (var j = Math.random() * 5; j > 1; j--) {
 					var volume_id = inventResourceID();
-					var volume_name = "dummy_volume-" + volume_id;
+					var volume_name = "vol-" + volume_id;
 					clusterdata["volumes"][volume_id] = {"status":"in-use","name":volume_name,"display_name": volume_name,"attachments":[{"device":"vda","server_id":instance_id,"volume_id":volume_id,"host_name":null,"id": volume_id}],"availability_zone":"nova","bootable":"true","created_at":"2014-05-16T18:47:04.000000","display_description":null,"volume_type":"None","snapshot_id":null,"source_volid":null,"size":50,"id": volume_id,"metadata":{"readonly":"False","attached_mode":"rw"}}
 					addVolumeToDash(volume_id);
 				}

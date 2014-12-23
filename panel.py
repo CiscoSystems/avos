@@ -1,4 +1,4 @@
-# vim: tabstop=4 shiftwidth=4 softtabstop=4
+# The main panel
 
 from django.utils.translation import ugettext_lazy as _
 
@@ -10,7 +10,7 @@ from openstack_dashboard.dashboards.admin import dashboard
 class Avos(horizon.Panel):
     name = _("Avos")
     slug = 'avos'
-    permissions = ('openstack.roles.admin',)
+    permissions = ()
 
 
 dashboard.Admin.register(Avos)
