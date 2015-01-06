@@ -1,0 +1,18 @@
+[<Sample {u'counter_name': u'cpu_util', 
+u'user_id': u'691bc9c39e4b420cbf3d931190cd4a06', 
+u'resource_id': u'3ac3ab4c-e6f0-452d-bfd3-9cb1e1a3cfe0', 
+u'timestamp': u'2014-03-24T19:55:40', 
+u'message_id': u'468ac984-b38e-11e3-b621-0025b520019f', 
+u'source': u'openstack', 
+u'counter_unit': u'%', 
+u'counter_volume': 0.0, 
+u'project_id': u'10bed47042c548958046bd1f7b944039', 
+u'resource_metadata': {u'ephemeral_gb': u'100', u'flavor.vcpus': u'8', u'flavor.ephemeral': u'100', u'display_name': u'savanna-Meph-001', u'flavor.id': u'86c60af7-e41c-4bac-8554-83a9a1f4d0dd', u'OS-EXT-AZ:availability_zone': u'nova', u'ramdisk_id': u'None', u'flavor.name': u'm1.hadoop', u'disk_gb': u'100', u'kernel_id': u'None', u'image.id': u'af770296-859f-485a-a1bc-7a7cc5c2c385', u'flavor.ram': u'10000', u'host': u'a1633731e042286300316431269b96774585ecf8e2dfb38a495bf08b', u'image.name': u'Vanilla Hadoop', u'image_ref_url': u'http://controller:8774/57ee55c6b3d24d63a99f22deebde9107/images/af770296-859f-485a-a1bc-7a7cc5c2c385', u'cpu_number': u'8', u'flavor.disk': u'100', u'root_gb': u'0', u'name': u'instance-0000053a', u'memory_mb': u'10000', u'instance_type': u'86c60af7-e41c-4bac-8554-83a9a1f4d0dd', u'vcpus': u'8', u'image_ref': u'af770296-859f-485a-a1bc-7a7cc5c2c385'}, u'counter_type': u'gauge'}>]
+
+
+
+[
+<Meter {u'user_id': u'691bc9c39e4b420cbf3d931190cd4a06', u'name': u'instance', u'resource_id': u'3ac3ab4c-e6f0-452d-bfd3-9cb1e1a3cfe0', u'source': u'openstack', u'meter_id': u'M2FjM2FiNGMtZTZmMC00NTJkLWJmZDMtOWNiMWUxYTNjZmUwK2luc3RhbmNl\n', u'project_id': u'10bed47042c548958046bd1f7b944039', u'type': u'gauge', u'unit': u'instance'}>, 
+<Meter {u'user_id': u'691bc9c39e4b420cbf3d931190cd4a06', u'name': u'instance:m1.hadoop', u'resource_id': u'3ac3ab4c-e6f0-452d-bfd3-9cb1e1a3cfe0', u'source': u'openstack', u'meter_id': u'M2FjM2FiNGMtZTZmMC00NTJkLWJmZDMtOWNiMWUxYTNjZmUwK2luc3RhbmNlOm0xLmhhZG9vcA==\n', u'project_id': u'10bed47042c548958046bd1f7b944039', u'type': u'gauge', u'unit': u'instance'}>, 
+<Meter {u'user_id': u'691bc9c39e4b420cbf3d931190cd4a06', u'name': u'cpu_util', u'resource_id': u'3ac3ab4c-e6f0-452d-bfd3-9cb1e1a3cfe0', u'source': u'openstack', u'meter_id': u'M2FjM2FiNGMtZTZmMC00NTJkLWJmZDMtOWNiMWUxYTNjZmUwK2NwdV91dGls\n', u'project_id': u'10bed47042c548958046bd1f7b944039', u'type': u'gauge', u'unit': u'%'}>, 
+<Meter {u'user_id': u'691bc9c39e4b420cbf3d931190cd4a06', u'name': u'cpu', u'resource_id': u'3ac3ab4c-e6f0-452d-bfd3-9cb1e1a3cfe0', u'source': u'openstack', u'meter_id': u'M2FjM2FiNGMtZTZmMC00NTJkLWJmZDMtOWNiMWUxYTNjZmUwK2NwdQ==\n', u'project_id': u'10bed47042c548958046bd1f7b944039', u'type': u'cumulative', u'unit': u'ns'}>]

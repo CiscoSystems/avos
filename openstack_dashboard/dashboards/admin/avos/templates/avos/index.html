@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "AVOS" %}{% endblock %}
+
+{% block css %}
+  {% include "_stylesheets.html" %}
+
+  <link href='{{ STATIC_URL }}dashboard/css/style.css' type='text/css' media='screen' rel='stylesheet' />
+{% endblock %}
+
+{% block main %}
+
+<!-- <iframe src="http://192.168.57.20:8080/" style="height: calc(100%); width: 100%; overflow: hidden; min-height: 1022px" id="avosframe"></iframe> -->
+
+<!-- <script type='text/javascript' src='{{ STATIC_URL }}dashboard/js/jquery-latest.js'></script> -->
+<script type='text/javascript' src='{{ STATIC_URL }}dashboard/js/jquery-layout-latest.js'></script>
+<script type='text/javascript' src='{{ STATIC_URL }}dashboard/js/jquery.dataTables.js'></script>
+<script type='text/javascript' src='{{ STATIC_URL }}dashboard/js/jquery.fittext.js'></script>
+<script type='text/javascript' src="{{ STATIC_URL }}dashboard/js/d3.js"></script>
+<script type='text/javascript' src="{{ STATIC_URL }}dashboard/js/heatmap.js"></script>
+<script type='text/javascript' src="{{ STATIC_URL }}dashboard/js/rickshaw.js"></script>
+<script type='text/javascript' src="{{ STATIC_URL }}dashboard/js/bootstrap.js"></script>
+<script type='text/javascript' src='{{ STATIC_URL }}dashboard/js/credentials.js'></script>
+<script type='text/javascript' src='{{ STATIC_URL }}dashboard/js/main.js'></script>
+
+<div class="layoutwrap" unresolved>
+<div  class='ui-layout-container'>
+
+	<!-- Modal -->
+	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+	        <img src="{{ STATIC_URL }}dashboard/img/ciscologo.png" style="float: right; margin-right: 20px; margin-top: -10px" height="45" />
+	        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+	      </div>
+	      <div class="modal-body" id="myModalBody">
+	        
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+
+	<!-- Large Modal -->
+	<div class="modal fade bs-example-modal-lg" id="myLargeModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+	  <div class="modal-dialog modal-lg" style="width: 80%; max-width: 1000px">
+	    <div class="modal-content">
+			<div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+	        <img src="{{ STATIC_URL }}dashboard/img/ciscologo.png" style="float: right; margin-right: 20px; margin-top: -10px" height="45" />
+	        <h4 class="modal-title" id="myLargeModalLabel">Network Plot</h4>
+	      </div>
+	      <div class="modal-body" id="myLargeModalContent" style="text-align: center;">
+	        ...
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+
+	<!-- Search -->
+	<div class="btn-group" id="fake-search">
+	    <div class="input-group">
+	      <input type="text" class="form-control" id="fake-search-box" placeholder="StackSearch..." onfocus="openSearch()" onclick="openSearch()" onkeyup="filter()">
+	      <div class="input-group-btn">
+	        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-search"></span> <span class="caret"></span></button>
+	        <ul class="dropdown-menu pull-right">
+				<li><a href="#"><span class="glyphicon glyphicon-check"> Servers</span></a></li>
+				<li><a href="#"><span class="glyphicon glyphicon-check"> Volumes</span></a></li>
+	        	<li><a href="#"><span class="glyphicon glyphicon-check"> Routers</span></a></li>
+	        	<li><a href="#"><span class="glyphicon glyphicon-check"> Networks</span></a></li>
+	        	<li><a href="#"><span class="glyphicon glyphicon-unchecked"> Ports</span></a></li>
+	        	<li class="divider"></li>
+	        	<li><a href="#">Bla</a></li>
+	        </ul>
+	      </div>
+	    </div>
+	</div>
+
+
+
+<!-- manually attach allowOverflow method to pane -->
+<div id='pane-north' class='ui-layout-north ui-layout-pane ui-layout-pane-north'>
+<div id="graph"></div>
+</div>
+<!-- allowOverflow auto-attached by option: west__showOverflowOnHover = true -->
+<div id='pane-west' class='ui-layout-west ui-layout-pane ui-layout-pane-west'>
+	<div class="fill-padder" style="padding-top: 50px">
+		<table cellpadding="0" cellspacing="0" border="0" class="display" id="entity-table">
+        <thead>
+          <tr>
+          	<th>ID</th>
+          	<th>T</th>
+            <th>Name</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+	</div>
+</div>
+
+<div id='pane-south' class='ui-layout-south ui-layout-pane ui-layout-pane-south'>
+		<p class='center compress'>Debugging Buttons:</p>
+	<button id='openAllPanes' class='ui-layout-button-open ui-layout-button-open-north ui-layout-button-open-south ui-layout-button-open-west ui-layout-button-open-east' title='Open'>Open All Panes</button>
+	<button id='closeAllPanes' class='ui-layout-button-close ui-layout-button-close-north ui-layout-button-close-south ui-layout-button-close-west ui-layout-button-close-east' title='Close'>Close All Panes</button>
+	<button id='toggleAllPanes' class='ui-layout-button-toggle ui-layout-button-toggle-north ui-layout-button-toggle-south ui-layout-button-toggle-west ui-layout-button-toggle-east'>Toggle All Panes</button>
+	<button id='btnReset' class='hidden' onclick='myLayout.loadState(stateResetSettings, true)' style='display: inline-block;'>Reset State</button>
+	<button onclick='debugData(myLayout.options.west)'>West Options</button>
+</div>
+
+<div id='pane-east' class='ui-layout-east ui-layout-pane ui-layout-pane-east'>
+	
+</div>
+
+<div id='pane-center' class='ui-layout-center ui-layout-pane ui-layout-pane-center ui-layout-pane-hover ui-layout-pane-center-hover ui-layout-pane-open-hover ui-layout-pane-center-open-hover'>
+	<div class="bottom">
+		<div class="btn-group">
+			<div class="btn-group dropup">
+				<button id="btn-toggle-home" type="button" class="btn btn-default dropdown-toggle" title="Show Whole Cluster" data-toggle="dropdown"><span class="glyphicon glyphicon-cog"></span></button>
+				<ul class="dropdown-menu" role="menu">
+				    <li><a href="#">Heatmap</a></li>
+				    <li><a href="#" onclick="openNetworkPlot()">Network</a></li>
+				    <li><a href="#">Graphs</a></li>
+				    <li class="divider"></li>
+				    <li><a href="#">Turn off all elements</a></li>
+				</ul>
+			</div>
+			<button id="btn-toggle-labels" type="button" class="btn btn-default" data-toggle="button" title="Toggle Labels" onclick="toggleLabels();"><span class="glyphicon glyphicon-font"></span></button>
+			<button id="btn-toggle-heat" type="button" class="btn btn-default" data-toggle="button" title="Toggle Heatmap" onclick="toggleHeatmap();"><span class="glyphicon glyphicon-fire"></span></button>
+			<button id="btn-toggle-list" type="button" class="btn btn-default" data-toggle="button" title="Toggle List"><span class="glyphicon glyphicon-list"></span></button>
+			<button id="btn-toggle-graph" type="button" class="btn btn-default" data-toggle="button" title="Toggle Graph"><span class="glyphicon glyphicon-stats"></span></button>
+			<button id="btn-toggle-hdd" type="button" class="btn btn-default" data-toggle="button" title="Toggle Volumes"><span class="glyphicon glyphicon-hdd"></span></button>
+			<button id="btn-toggle-ntwk" type="button" class="btn btn-default" data-toggle="button" title="Toggle Networks"><span class="glyphicon glyphicon-globe"></span></button>
+			<button id="btn-toggle-alert" type="button" class="btn btn-default" data-toggle="button" title="Toggle Alerts"><span class="glyphicon glyphicon-bell"></span></button>
+			<button id="btn-edit" type="button" class="btn btn-default" title="Edit Mode" data-toggle="button"><span class="glyphicon glyphicon-edit"></span></button>
+		</div>
+	</div>
+
+	<div class="bottom right">
+		<div class="btn-group">
+			<button id="btn-zoomr" type="button" class="btn btn-default" title="Reset Zoom" onclick="resetZoom()"><span class="glyphicon glyphicon-cloud"></span></button>
+			<button id="btn-legend" type="button" class="btn btn-default" title="Help" data-toggle="modal" data-target="#myModal" onclick="loadHelp()"><span class="glyphicon glyphicon-question-sign"></span></button>
+			<button id="btn-settings" type="button" class="btn btn-default" title="Settings" data-toggle="modal" data-target="#myModal" onclick="loadSettings()"><span class="glyphicon glyphicon-wrench"></span></button>
+		</div>
+	</div>
+
+
+
+	<!-- <input id ='fake-search' class='search' type='text' name='search' value='Search' /> -->
+	<!-- Here should load the central pane on document.ready -->
+</div>
+</div>
+</div>
+    {{ table.render }}
+{% endblock %}
