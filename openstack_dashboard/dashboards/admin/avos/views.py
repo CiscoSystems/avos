@@ -1,15 +1,22 @@
-from horizon import views
-
-from .tables import InstancesTable
-
+import logging
 import datetime
 import iso8601
 import json
+
+from django import http
+from django.utils.translation import ugettext_lazy as _
+
+from horizon import views
+from .tables import InstancesTable
+
 from novaclient import client as novaclient
 from ceilometerclient import client as ceilometerclient
 from glanceclient import client as glanceclient
 from cinderclient import client as cinderclient
 from neutronclient.neutron import client as neutronclient
+
+LOG = logging.getLogger(__name__)
+LOG.debug("Hello, we've loaded!")
 
 OS_ENDPOINT = ""
 OS_USERNAME = ""
@@ -188,7 +195,23 @@ class IndexView(views.APIView):
     # A very simple class-based view...
     template_name = 'admin/avos/index.html'
 
-    def get_data(self, request, context, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
+        LOG.warning("We've made a GET request")
+        LOG.warning("isajax: " + str(self.request.is_ajax()))
+        LOG.warning("isjson: " + str(self.request.GET.get("avos", False)))
+        if self.request.is_ajax() and self.request.GET.get("avos", False):
+            LOG.warning("We made the right request!")
+            try:
+                instances = utils.get_instances_data(self.request)
+            except:
+                LOG.warning("Our instance request fucked up.")
+                instances = []
+                exceptions.handle(request, _('Unable to retrieve instance list'))
+            data = json.dump([i._apiresource._info for i in instances])
+            return http.HttpResponse(data)
+        else:
+            LOG.warning("We made the wrong request!")
+            return super(IndexView, self).get(request, *args, **kwargs)
     	instances = []
     	flavors = []
     	images = []

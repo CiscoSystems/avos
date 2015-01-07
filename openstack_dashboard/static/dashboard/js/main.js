@@ -134,10 +134,15 @@ $(document).ready(function() {
  * @param  {[String]}   param    [The query to send to the server]
  */
 function getServerData(callback, param) {
+	console.log("We're fetching data now!")
 	 $.ajax({
-		type: "POST",
-		data: {params: param, OS_endpoint: OS_endpoint, OS_username: OS_username, OS_password: OS_password, OS_tenant: OS_tenant},
-		success: function(data) {
+	 	url: window.location + "?avos=true",
+	 	dataType: "json",
+		// type: "GET",
+		// data: {params: param, OS_endpoint: OS_endpoint, OS_username: OS_username, OS_password: OS_password, OS_tenant: OS_tenant},
+		success: function(data, textStatus) {
+			console.log("We got things: " + textStatus);
+			console.log(data);
 			callback(data);
 		},
 	})
