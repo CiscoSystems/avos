@@ -3,19 +3,30 @@ import datetime
 import iso8601
 import json
 
-from django import http
+from django.conf import settings
+from django.http import HttpResponse
 from django.utils.translation import ugettext_lazy as _
+from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse_lazy
+from django.http import HttpResponse  # noqa
+from django.views.generic import TemplateView  # noqa
+from django.views.generic import View  # noqa
 
 from horizon import views
-from .tables import InstancesTable
+from horizon import exceptions
+# from .tables import InstancesTable
 
+from openstack_dashboard import api
 from novaclient import client as novaclient
-from ceilometerclient import client as ceilometerclient
-from glanceclient import client as glanceclient
-from cinderclient import client as cinderclient
-from neutronclient.neutron import client as neutronclient
+# from ceilometerclient import client as ceilometerclient
+# from glanceclient import client as glanceclient
+# from cinderclient import client as cinderclient
+# from neutronclient.neutron import client as neutronclient
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger("LexHolden     ")
+LOG.debug("")
+LOG.debug("")
+LOG.debug("")
 LOG.debug("Hello, we've loaded!")
 
 OS_ENDPOINT = ""
@@ -195,39 +206,272 @@ class IndexView(views.APIView):
     # A very simple class-based view...
     template_name = 'admin/avos/index.html'
 
-    def get(self, request, *args, **kwargs):
-        LOG.warning("We've made a GET request")
-        LOG.warning("isajax: " + str(self.request.is_ajax()))
-        LOG.warning("isjson: " + str(self.request.GET.get("avos", False)))
-        if self.request.is_ajax() and self.request.GET.get("avos", False):
-            LOG.warning("We made the right request!")
-            try:
-                instances = utils.get_instances_data(self.request)
-            except:
-                LOG.warning("Our instance request fucked up.")
-                instances = []
-                exceptions.handle(request, _('Unable to retrieve instance list'))
-            data = json.dump([i._apiresource._info for i in instances])
-            return http.HttpResponse(data)
+    @property
+    def is_router_enabled(self):
+        network_config = getattr(settings, 'OPENSTACK_NEUTRON_NETWORK', {})
+        return network_config.get('enable_router', True)
+
+    def add_resource_url(self, view, resources):
+        tenant_id = self.request.user.tenant_id
+        for resource in resources:
+            if (resource.get('tenant_id')
+                    and tenant_id != resource.get('tenant_id')):
+                continue
+            resource['url'] = reverse(view, None, [str(resource['id'])])
+
+    def _check_router_external_port(self, ports, router_id, network_id):
+        for port in ports:
+            if (port['network_id'] == network_id
+                    and port['device_id'] == router_id):
+                return True
+        return False
+
+    def _get_flavors(self, request):
+        try:
+            flavors = api.nova.flavor_list(request)
+        except Exception:
+            LOG.warning("Something went wrong with our flavors")
+        LOG.warning(flavors)
+        data = [{
+                'name': flavor.name,
+                'id': flavor.id,
+                'ram': flavor.ram,
+                'vcpus': flavor.vcpus,
+                'disk': flavor.disk
+            } for flavor in flavors]
+        return data
+
+    def _get_floating_ips(self, request):
+        try:
+            floating_ips = api.nova.FloatingIpManager.list(self)
+        except Exception:
+            LOG.warning("We have no floaters")
+            floating_ips = []
+        LOG.warning(floating_ips)
+        data = {}
+        return data
+
+    def _get_images(self, request):
+        try:
+            (images, self._more, self._prev) = api.glance.image_list_detailed(self.request)
+        except Exception:
+            images = []
+            exceptions.handle(self.request, _("Unable to retrieve images."))
+        data = [{
+                'name': image.name,
+                'id': image.id
+        } for image in images]
+        return data
+
+    def _get_servers(self, request):
+        # Get nova data
+        try:
+            servers, more = api.nova.server_list(request, all_tenants=True)
+        except Exception:
+            LOG.warning("We have no servers, something went wrong!")
+            servers = []
+        console_type = getattr(settings, 'CONSOLE_TYPE', 'AUTO')
+        if console_type == 'SPICE':
+            console = 'spice'
         else:
-            LOG.warning("We made the wrong request!")
+            LOG.warning(servers)
+            console = 'vnc'
+        data = [{
+                'name': server.name,
+                'status': server.status,
+                'console': console,
+                'task': getattr(server, 'OS-EXT-STS:task_state'),
+                'image': server.image,
+                'id': server.id
+            } for server in servers]
+        self.add_resource_url('horizon:project:instances:detail', data)
+        return data
+
+    def _get_networks(self, request):
+        # Get neutron data
+        # if we didn't specify tenant_id, all networks shown as admin user.
+        # so it is need to specify the networks. However there is no need to
+        # specify tenant_id for subnet. The subnet which belongs to the public
+        # network is needed to draw subnet information on public network.
+        try:
+            neutron_networks = api.neutron.network_list_for_tenant(
+                request,
+                request.user.tenant_id)
+        except Exception:
+            neutron_networks = []
+        networks = [{'name': network.name,
+                     'id': network.id,
+                     'subnets': [{'cidr': subnet.cidr}
+                                 for subnet in network.subnets],
+                     'router:external': network['router:external']}
+                    for network in neutron_networks]
+        self.add_resource_url('horizon:project:networks:detail',
+                              networks)
+
+        # Add public networks to the networks list
+        if self.is_router_enabled:
+            try:
+                neutron_public_networks = api.neutron.network_list(
+                    request,
+                    **{'router:external': True})
+            except Exception:
+                neutron_public_networks = []
+            my_network_ids = [net['id'] for net in networks]
+            for publicnet in neutron_public_networks:
+                if publicnet.id in my_network_ids:
+                    continue
+                try:
+                    subnets = [{'cidr': subnet.cidr}
+                               for subnet in publicnet.subnets]
+                except Exception:
+                    subnets = []
+                networks.append({
+                    'name': publicnet.name,
+                    'id': publicnet.id,
+                    'subnets': subnets,
+                    'router:external': publicnet['router:external']})
+
+        return sorted(networks,
+                      key=lambda x: x.get('router:external'),
+                      reverse=True)
+
+    def _get_routers(self, request):
+        if not self.is_router_enabled:
+            return []
+        try:
+            neutron_routers = api.neutron.router_list(
+                request,
+                tenant_id=request.user.tenant_id)
+        except Exception:
+            neutron_routers = []
+
+        routers = [{'id': router.id,
+                    'name': router.name,
+                    'status': router.status,
+                    'external_gateway_info': router.external_gateway_info}
+                   for router in neutron_routers]
+        self.add_resource_url('horizon:project:routers:detail', routers)
+        return routers
+
+    def _get_ports(self, request):
+        try:
+            neutron_ports = api.neutron.port_list(request)
+        except Exception:
+            neutron_ports = []
+
+        ports = [{'id': port.id,
+                  'network_id': port.network_id,
+                  'device_id': port.device_id,
+                  'fixed_ips': port.fixed_ips,
+                  'device_owner': port.device_owner,
+                  'status': port.status}
+                 for port in neutron_ports]
+        self.add_resource_url('horizon:project:networks:ports:detail',
+                              ports)
+        return ports
+
+    def _get_volumes(self, request):
+        try:
+            volumes = api.cinder.volume_list(request)
+        except Exception:
+            volumes = []
+        data = [{
+                'id': volume.id,
+                'name': volume.name
+        } for volume in volumes]
+        return data
+
+
+    def _prepare_gateway_ports(self, routers, ports):
+        # user can't see port on external network. so we are
+        # adding fake port based on router information
+        for router in routers:
+            external_gateway_info = router.get('external_gateway_info')
+            if not external_gateway_info:
+                continue
+            external_network = external_gateway_info.get(
+                'network_id')
+            if not external_network:
+                continue
+            if self._check_router_external_port(ports,
+                                                router['id'],
+                                                external_network):
+                continue
+            fake_port = {'id': 'gateway%s' % external_network,
+                         'network_id': external_network,
+                         'device_id': router['id'],
+                         'fixed_ips': []}
+            ports.append(fake_port)
+
+    def get(self, request, *args, **kwargs):
+        if self.request.is_ajax() and self.request.GET.get("avos", False):
+            data = {'servers': self._get_servers(request),
+                    'neutronnetwork': self._get_networks(request),
+                    'ports': self._get_ports(request),
+                    'routers': self._get_routers(request),
+                    'flavors': self._get_flavors(request),
+                    'images': self._get_images(request),
+                    'volumes': self._get_volumes(request),
+                    'floating_ips': self._get_floating_ips(request)}
+            self._prepare_gateway_ports(data['routers'], data['ports'])
+            json_string = json.dumps(data, ensure_ascii=False)
+            return HttpResponse(json_string, content_type='text/json')
+        else:
+            LOG.warning("We made the wrong request, let's super it!")
             return super(IndexView, self).get(request, *args, **kwargs)
-    	instances = []
-    	flavors = []
-    	images = []
-    	networks = []
-    	floating_ips = []
-    	keypairs = []
-    	security_groups = []
-    	volumes = []
-    	routers = []
-    	subnets = []
-    	ports = []
-    	neutronnetwork = []
-        # Add data to the context here...
-        return context
+
+    # def get_data(self, request, *args, **kwargs):
+    #     if self.request.is_ajax() and self.request.GET.get("avos", False):
+    #         LOG.warning("")
+    #         LOG.warning("")
+    #         LOG.warning("")
+    #         LOG.warning(self)
+    #         LOG.warning(request)
+    #         LOG.warning(args)
+    #         LOG.warning("This happened, we got data!")
+    #         return "api.nova.server_list(self.request, all_tenants=True)"
+
+    # def get(self, request, *args, **kwargs):
+    #     LOG.warning("We've made a GET request")
+    #     LOG.warning("isajax: " + str(self.request.is_ajax()))
+    #     LOG.warning("isjson: " + str(self.request.GET.get("avos", False)))
+    #     if self.request.is_ajax() and self.request.GET.get("avos", False):
+    #         LOG.warning("We made the right request!")
+    #         return http.HttpResponse("hello")
+    #         # instances = api.nova.server_list(self.request, all_tenants=True)
+    #         # LOG.warning(instances)
+    #         try:
+    #             instances = api.nova.server_list(self.request, all_tenants=True)
+    #         except:
+    #             LOG.warning("Our instance request fucked up.")
+    #             instances = []
+    #             exceptions.handle(request, _('Unable to retrieve instance list'))
+    #         # data = json.dump([i._apiresource._info for i in instances])
+    #         LOG.warning("So we have a list of instances - woo!")
+    #         LOG.warning(instances)
+    #         LOG.warning("Did that happen?")
+    #         return http.StreamingHttpResponse(instances)
+    #     else:
+    #         LOG.warning("We made the wrong request, let's super it!")
+    #         return super(IndexView, self).get(request, *args, **kwargs)
+    # 	instances = []
+    # 	flavors = []
+    # 	images = []
+    # 	networks = []
+    # 	floating_ips = []
+    # 	keypairs = []
+    # 	security_groups = []
+    # 	volumes = []
+    # 	routers = []
+    # 	subnets = []
+    # 	ports = []
+    # 	neutronnetwork = []
+    #     # Add data to the context here...
+    #     return context
          
-    def post(self):
+    def post(request, *args, **kwargs):
+        if request.is_ajax() :
+            LOG.warning("We're making a POST")
     	return "hi"
         global OS_ENDPOINT
         global OS_USERNAME

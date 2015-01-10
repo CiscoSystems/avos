@@ -134,15 +134,13 @@ $(document).ready(function() {
  * @param  {[String]}   param    [The query to send to the server]
  */
 function getServerData(callback, param) {
-	console.log("We're fetching data now!")
 	 $.ajax({
 	 	url: window.location + "?avos=true",
 	 	dataType: "json",
-		// type: "GET",
+		type: "GET",
 		// data: {params: param, OS_endpoint: OS_endpoint, OS_username: OS_username, OS_password: OS_password, OS_tenant: OS_tenant},
 		success: function(data, textStatus) {
-			console.log("We got things: " + textStatus);
-			console.log(data);
+			// console.log(data);
 			callback(data);
 		},
 	})
@@ -204,16 +202,24 @@ function generateRandomString() {
  *	@param data		Array of servers to load
  */
 function loadInitialServers(data) {
-	clusterdata = JSON.parse(data);
+	// console.log("Now we're loading our servers")
+	clusterdata = data;
 	// TODO: It's far to easy to grab the pane, move outside the window, then be dragging until you click again. This is annoying and buggy. What can we do about it?
 	
 	clusterdata["lookup"] = {}
-
+	clusterdata["flavors"] = cleanArrayItems(clusterdata["flavors"]);
+	clusterdata["servers"] = cleanArrayItems(clusterdata["servers"]);
+	clusterdata["images"] = cleanArrayItems(clusterdata["images"]);
+	clusterdata["neutronnetwork"] = cleanArrayItems(clusterdata["neutronnetwork"]);
+	clusterdata["ports"] = cleanArrayItems(clusterdata["ports"]);
+	clusterdata["routers"] = cleanArrayItems(clusterdata["routers"]);
+	clusterdata["volumes"] = cleanArrayItems(clusterdata["volumes"]);
+	console.log(clusterdata);
 	// Since Neutron is annoying and formats it's API data differently, we must first clean it up.
-	clusterdata["routers"] = cleanJsonByID(clusterdata["routers"]);
-	clusterdata["subnets"] = cleanJsonByID(clusterdata["subnets"]);
-	clusterdata["ports"] = cleanJsonByID(clusterdata["ports"]);
-	clusterdata["neutronnetwork"] = cleanJsonByID(clusterdata["neutronnetwork"]);
+	// clusterdata["routers"] = cleanJsonByID(clusterdata["routers"]);
+	// clusterdata["subnets"] = cleanJsonByID(clusterdata["subnets"]);
+	// clusterdata["ports"] = cleanJsonByID(clusterdata["ports"]);
+	// clusterdata["neutronnetwork"] = cleanJsonByID(clusterdata["neutronnetwork"]);
 
 	/*----------  Networks  ----------*/
 
@@ -277,11 +283,11 @@ function loadInitialServers(data) {
 
 	/*----------  Networks  ----------*/
 
-	var nova_network_keys = Object.keys(clusterdata["networks"]) 
+	// var nova_network_keys = Object.keys(clusterdata["networks"]) 
 
-	for (var i in nova_network_keys) {
-		clusterdata["lookup"][nova_network_keys[i]] = "networks";
-	}
+	// for (var i in nova_network_keys) {
+	// 	clusterdata["lookup"][nova_network_keys[i]] = "networks";
+	// }
 
 	/*----------  Ports  ----------*/
 
@@ -293,23 +299,34 @@ function loadInitialServers(data) {
 
 	/*----------  Security Groups  ----------*/
 
-	var security_keys = Object.keys(clusterdata["security_groups"]) 
+	// var security_keys = Object.keys(clusterdata["security_groups"]) 
 
-	for (var i in security_keys) {
-		clusterdata["lookup"][security_keys[i]] = "security_groups";
-	}
+	// for (var i in security_keys) {
+	// 	clusterdata["lookup"][security_keys[i]] = "security_groups";
+	// }
 
 	/*----------  SubNets  ----------*/
 
-	var subnet_keys = Object.keys(clusterdata["subnets"]) 
+	// var subnet_keys = Object.keys(clusterdata["subnets"]) 
 
-	for (var i in subnet_keys) {
-		clusterdata["lookup"][subnet_keys[i]] = "subnets";
+	// for (var i in subnet_keys) {
+	// 	clusterdata["lookup"][subnet_keys[i]] = "subnets";
+	// }
+
+	console.log("We should have just loaded everything.")
+
+	// addEventListeners();
+	// createHeatmap();
+}
+
+function cleanArrayItems(array) {
+	// console.log(array);
+	var object = {}
+	for (var i in array) {
+		object[array[i].id] = array[i];
 	}
-
-
-	addEventListeners();
-	createHeatmap();
+	// console.log(object)
+	return object;
 }
 
 /**
