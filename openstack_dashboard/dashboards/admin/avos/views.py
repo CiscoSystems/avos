@@ -14,93 +14,14 @@ from django.views.generic import View  # noqa
 
 from horizon import views
 from horizon import exceptions
-# from .tables import InstancesTable
-
 from openstack_dashboard import api
-from novaclient import client as novaclient
-# from ceilometerclient import client as ceilometerclient
-# from glanceclient import client as glanceclient
-# from cinderclient import client as cinderclient
-# from neutronclient.neutron import client as neutronclient
 
-LOG = logging.getLogger("LexHolden     ")
+LOG = logging.getLogger("AVOS:::")
 LOG.debug("")
 LOG.debug("")
 LOG.debug("")
-LOG.debug("Hello, we've loaded!")
-
-OS_ENDPOINT = ""
-OS_USERNAME = ""
-OS_PASSWORD = ""
-OS_TENANT = ""
 
 _ISO8601_TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
-
-def get_startup_data():
-    print(OS_ENDPOINT)
-    nova = novaclient.Client("1.1", username=OS_USERNAME, api_key=OS_PASSWORD, auth_url=OS_ENDPOINT, project_id=OS_TENANT)
-    cinder = cinderclient.Client("2", username=OS_USERNAME, api_key=OS_PASSWORD, auth_url=OS_ENDPOINT, project_id=OS_TENANT)
-    neutron = neutronclient.Client("2.0", username=OS_USERNAME, password=OS_PASSWORD, auth_url=OS_ENDPOINT, tenant_name=OS_TENANT)
-    servers = nova.servers.list(detailed=True)
-    flavors = nova.flavors.list()
-    images = nova.images.list()
-    networks = nova.networks.list()
-    floating_ips = nova.floating_ips.list()
-    keypairs = nova.keypairs.list()
-    security_groups = nova.security_groups.list()
-    volumes = cinder.volumes.list()
-    routers = neutron.list_routers()
-    subnets = neutron.list_subnets()
-    ports = neutron.list_ports()
-    neutronnetwork = neutron.list_networks()
-
-    packet = {}
-    packet["servers"] = {}
-    packet["flavors"] = {}
-    packet["images"] = {}
-    packet["networks"] = {}
-    packet["floating_ips"] = {}
-    packet["keypairs"] = {}
-    packet["security_groups"] = {}
-    packet["volumes"] = {}
-    packet["routers"] = {}
-    packet["subnets"] = {}
-    for i in servers:
-        packet["servers"][i.id] = i._info
-    for i in flavors:
-        packet["flavors"][i.id] = i._info
-    for i in images:
-        packet["images"][i.id] = i._info
-    for i in networks:
-        packet["networks"][i.id] = i._info
-    for i in floating_ips:
-        packet["floating_ips"][i.id] = i._info
-    for i in keypairs:
-        packet["keypairs"][i.id] = i._info
-    for i in security_groups:
-        packet["security_groups"][i.id] = i._info
-    for i in volumes:
-        packet["volumes"][i.id] = i._info
-    # TODO: Can these be passed directly as JSON? Don't think so, but look into.
-    packet["routers"] = json.dumps(routers)
-    packet["subnets"] = json.dumps(subnets)
-    packet["ports"] = json.dumps(ports)
-    packet["neutronnetwork"] = json.dumps(neutronnetwork)
-
-    return json.dumps(packet)
-
-
-def get_server_list():
-    print(OS_ENDPOINT)
-    nova = novaclient.Client("1.1", username=OS_USERNAME, api_key=OS_PASSWORD, auth_url=OS_ENDPOINT, project_id=OS_TENANT)
-    servers = nova.servers.list(detailed=True)
-    #server = {"name": servers[0].name}
-    packet = {}
-    #print(servers[0])
-    for i in servers:
-        packet[i.id] = i._info
-    #print(packet)
-    return json.dumps(packet)
 
 def get_cpu_util_list():
     nova = novaclient.Client("1.1", username=OS_USERNAME, api_key=OS_PASSWORD, auth_url=OS_ENDPOINT, project_id=OS_TENANT)
@@ -198,10 +119,6 @@ def isotime(at=None, subsecond=False):
     st += ('Z' if tz == 'UTC' else tz)
     return st
 
-def get_image_list():
-    glance = glanceclient.Client()
-
-
 class IndexView(views.APIView):
     # A very simple class-based view...
     template_name = 'admin/avos/index.html'
@@ -225,6 +142,100 @@ class IndexView(views.APIView):
                     and port['device_id'] == router_id):
                 return True
         return False
+
+    def _get_networks(self, request):
+        # Get neutron data
+        # if we didn't specify tenant_id, all networks shown as admin user.
+        # so it is need to specify the networks. However there is no need to
+        # specify tenant_id for subnet. The subnet which belongs to the public
+        # network is needed to draw subnet information on public network.
+        try:
+            neutron_networks = api.neutron.network_list(request)
+        except Exception:
+            neutron_networks = []
+        LOG.warning(neutron_networks)
+        networks = [{'name': network.name,
+                     'id': network.id,
+                     'subnets': [{'cidr': subnet.cidr} for subnet in network.subnets],
+                     'router:external': network['router:external']}
+                    for network in neutron_networks]
+        self.add_resource_url('horizon:project:networks:detail', networks)
+
+        # Add public networks to the networks list
+        if self.is_router_enabled:
+            try:
+                neutron_public_networks = api.neutron.network_list(request, **{'router:external': True})
+            except Exception:
+                neutron_public_networks = []
+            my_network_ids = [net['id'] for net in networks]
+            for publicnet in neutron_public_networks:
+                if publicnet.id in my_network_ids:
+                    continue
+                try:
+                    subnets = [{'cidr': subnet.cidr} for subnet in publicnet.subnets]
+                except Exception:
+                    subnets = []
+                networks.append({
+                    'name': publicnet.name,
+                    'id': publicnet.id,
+                    'subnets': subnets,
+                    'router:external': publicnet['router:external']})
+
+        return sorted(networks, key=lambda x: x.get('router:external'), reverse=True)
+
+    def _get_routers(self, request):
+        if not self.is_router_enabled:
+            return []
+        try:
+            neutron_routers = api.neutron.router_list(request)
+        except Exception:
+            neutron_routers = []
+        LOG.warning(neutron_routers)
+        routers = [{'id': router.id,
+                    'name': router.name,
+                    'status': router.status,
+                    'external_gateway_info': router.external_gateway_info}
+                   for router in neutron_routers]
+        self.add_resource_url('horizon:project:routers:detail', routers)
+        return routers
+
+    def _get_servers(self, request):
+        # Get nova data
+        try:
+            servers, more = api.nova.server_list(request, all_tenants=True)
+        except Exception:
+            LOG.warning("We have no servers, something went wrong!")
+            servers = []
+        console_type = getattr(settings, 'CONSOLE_TYPE', 'AUTO')
+        if console_type == 'SPICE':
+            console = 'spice'
+        else:
+            console = 'vnc'
+        LOG.warning(servers)
+        data = [{
+                'name': server.name,
+                'status': server.status,
+                'console': console,
+                'task': getattr(server, 'OS-EXT-STS:task_state'),
+                'image': server.image,
+                'id': server.id,
+                'addresses': server.addresses
+            } for server in servers]
+        self.add_resource_url('horizon:project:instances:detail', data)
+        return data
+
+    def _get_volumes(self, request):
+        try:
+            volumes = api.cinder.volume_list(request, search_opts={'all_tenants':1})
+        except Exception:
+            volumes = []
+        LOG.warning(volumes)
+        data = [{
+                'id': volume.id,
+                'name': volume.name,
+                'attachments': volume.attachments
+        } for volume in volumes]
+        return data
 
     def _get_flavors(self, request):
         try:
@@ -263,96 +274,6 @@ class IndexView(views.APIView):
         } for image in images]
         return data
 
-    def _get_servers(self, request):
-        # Get nova data
-        try:
-            servers, more = api.nova.server_list(request, all_tenants=True)
-        except Exception:
-            LOG.warning("We have no servers, something went wrong!")
-            servers = []
-        console_type = getattr(settings, 'CONSOLE_TYPE', 'AUTO')
-        if console_type == 'SPICE':
-            console = 'spice'
-        else:
-            LOG.warning(servers)
-            console = 'vnc'
-        data = [{
-                'name': server.name,
-                'status': server.status,
-                'console': console,
-                'task': getattr(server, 'OS-EXT-STS:task_state'),
-                'image': server.image,
-                'id': server.id
-            } for server in servers]
-        self.add_resource_url('horizon:project:instances:detail', data)
-        return data
-
-    def _get_networks(self, request):
-        # Get neutron data
-        # if we didn't specify tenant_id, all networks shown as admin user.
-        # so it is need to specify the networks. However there is no need to
-        # specify tenant_id for subnet. The subnet which belongs to the public
-        # network is needed to draw subnet information on public network.
-        try:
-            neutron_networks = api.neutron.network_list_for_tenant(
-                request,
-                request.user.tenant_id)
-        except Exception:
-            neutron_networks = []
-        networks = [{'name': network.name,
-                     'id': network.id,
-                     'subnets': [{'cidr': subnet.cidr}
-                                 for subnet in network.subnets],
-                     'router:external': network['router:external']}
-                    for network in neutron_networks]
-        self.add_resource_url('horizon:project:networks:detail',
-                              networks)
-
-        # Add public networks to the networks list
-        if self.is_router_enabled:
-            try:
-                neutron_public_networks = api.neutron.network_list(
-                    request,
-                    **{'router:external': True})
-            except Exception:
-                neutron_public_networks = []
-            my_network_ids = [net['id'] for net in networks]
-            for publicnet in neutron_public_networks:
-                if publicnet.id in my_network_ids:
-                    continue
-                try:
-                    subnets = [{'cidr': subnet.cidr}
-                               for subnet in publicnet.subnets]
-                except Exception:
-                    subnets = []
-                networks.append({
-                    'name': publicnet.name,
-                    'id': publicnet.id,
-                    'subnets': subnets,
-                    'router:external': publicnet['router:external']})
-
-        return sorted(networks,
-                      key=lambda x: x.get('router:external'),
-                      reverse=True)
-
-    def _get_routers(self, request):
-        if not self.is_router_enabled:
-            return []
-        try:
-            neutron_routers = api.neutron.router_list(
-                request,
-                tenant_id=request.user.tenant_id)
-        except Exception:
-            neutron_routers = []
-
-        routers = [{'id': router.id,
-                    'name': router.name,
-                    'status': router.status,
-                    'external_gateway_info': router.external_gateway_info}
-                   for router in neutron_routers]
-        self.add_resource_url('horizon:project:routers:detail', routers)
-        return routers
-
     def _get_ports(self, request):
         try:
             neutron_ports = api.neutron.port_list(request)
@@ -369,17 +290,6 @@ class IndexView(views.APIView):
         self.add_resource_url('horizon:project:networks:ports:detail',
                               ports)
         return ports
-
-    def _get_volumes(self, request):
-        try:
-            volumes = api.cinder.volume_list(request)
-        except Exception:
-            volumes = []
-        data = [{
-                'id': volume.id,
-                'name': volume.name
-        } for volume in volumes]
-        return data
 
 
     def _prepare_gateway_ports(self, routers, ports):
@@ -405,14 +315,20 @@ class IndexView(views.APIView):
 
     def get(self, request, *args, **kwargs):
         if self.request.is_ajax() and self.request.GET.get("avos", False):
-            data = {'servers': self._get_servers(request),
+            data = {
+                    'flavors': self._get_flavors(request),
+                    'floating_ips': self._get_floating_ips(request),
+                    'images': self._get_images(request),
+                    #'keypairs': self._get_keypairs(request),
+                    #'networks': self._get_networks(request),
                     'neutronnetwork': self._get_networks(request),
                     'ports': self._get_ports(request),
                     'routers': self._get_routers(request),
-                    'flavors': self._get_flavors(request),
-                    'images': self._get_images(request),
-                    'volumes': self._get_volumes(request),
-                    'floating_ips': self._get_floating_ips(request)}
+                    #'security_groups': self._get_security_groups,
+                    'servers': self._get_servers(request), 
+                    #'subnets': self._get_subnets(request), 
+                    'volumes': self._get_volumes(request)
+                }
             self._prepare_gateway_ports(data['routers'], data['ports'])
             json_string = json.dumps(data, ensure_ascii=False)
             return HttpResponse(json_string, content_type='text/json')

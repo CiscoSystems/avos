@@ -6,11 +6,6 @@
  *
  */
 
-/*
- *	First init all the global variables
- *
- */
-
 // set EVERY 'state' here so will undo ALL layout changes
 // used by the 'Reset State' button: myLayout.loadState( stateResetSettings )
 var stateResetSettings = {
@@ -340,10 +335,7 @@ function addNetworkToDash(key) {
 	if (clusterdata["neutronnetwork"][key]["router:external"] == true) { addNodeToForceGraph(key, "netpub", 30); }
 	else {	addNodeToForceGraph(key, "net", 25); }
 
-	$("#circle" + key).dblclick(function(){
-		loadNetRightPaneInfo(this.id.substring(6))
-	});
-
+	$("#circle" + key).dblclick(function(){	loadNetRightPaneInfo(this.id.substring(6)) });
 }
 
 /**
@@ -364,6 +356,7 @@ function addRouterToDash(key) {
 		// Same is happening in right pane load for routers
 		if (clusterdata["ports"][porkey]["device_id"] == key) {
 			var portnet = clusterdata["ports"][porkey]["network_id"];
+			// console.log("adding a link between rou: " + key + " and net " + portnet + ".")
 			addLinkToForceGraph(key, portnet);
 		}
 	}
@@ -404,7 +397,6 @@ function addVolumeToDash(key) {
 	clusterdata["lookup"][key] = "volumes";
 	addNodeToForceGraph(key, "vol", 12)
 
-
 	// The parameter name seems to have changed between OpenStack versions so let's sanity check first.
 	var name = clusterdata["volumes"][key]["name"]
 	if (name === undefined) {
@@ -414,6 +406,7 @@ function addVolumeToDash(key) {
 	addToListPane(key, "vol", name)
 
 	for (var j in clusterdata["volumes"][key]["attachments"]) {
+		// console.log("Linking vol: " + key + " with instance " + clusterdata['volumes'][key]["attachments"][j]["server_id"])
 		addLinkToForceGraph(key, clusterdata['volumes'][key]["attachments"][j]["server_id"]);
 	}
 	$("#circle" + key).dblclick(function(){
