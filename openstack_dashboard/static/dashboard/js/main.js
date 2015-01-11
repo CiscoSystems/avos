@@ -92,7 +92,7 @@ $(document).ready(function() {
 
 	//getServerData(setServers, "get servers");
 	// TODO: We need to ask OpenStack what components we have installed, and build our environment based on this. E.g. - No Neutron? Don't bother with networking. No Ceilometer? No heatmaps for you.
-	getServerData(loadInitialServers, "get startup data");
+	getServerData(loadInitialServers, "avosstartup");
 
 
 	document.body.onmousedown = function() { 
@@ -130,7 +130,7 @@ $(document).ready(function() {
  */
 function getServerData(callback, param) {
 	 $.ajax({
-	 	url: window.location + "?avos=true",
+	 	url: window.location + "?" + param + "=true",
 	 	dataType: "json",
 		type: "GET",
 		// data: {params: param, OS_endpoint: OS_endpoint, OS_username: OS_username, OS_password: OS_password, OS_tenant: OS_tenant},
@@ -209,6 +209,7 @@ function loadInitialServers(data) {
 	clusterdata["ports"] = cleanArrayItems(clusterdata["ports"]);
 	clusterdata["routers"] = cleanArrayItems(clusterdata["routers"]);
 	clusterdata["volumes"] = cleanArrayItems(clusterdata["volumes"]);
+	clusterdata["meters"] = cleanArrayItems(clusterdata["meters"], "name");
 	console.log(clusterdata);
 	// Since Neutron is annoying and formats it's API data differently, we must first clean it up.
 	// clusterdata["routers"] = cleanJsonByID(clusterdata["routers"]);
@@ -310,15 +311,15 @@ function loadInitialServers(data) {
 
 	console.log("We should have just loaded everything.")
 
-	// addEventListeners();
-	// createHeatmap();
+	addEventListeners();
+	createHeatmap();
 }
 
-function cleanArrayItems(array) {
-	// console.log(array);
+function cleanArrayItems(array, key) {
+	if (!key) {key = "id"}
 	var object = {}
 	for (var i in array) {
-		object[array[i].id] = array[i];
+		object[array[i][key]] = array[i];
 	}
 	// console.log(object)
 	return object;
@@ -924,7 +925,7 @@ function createHeatmap() {
 
 	//heatmap.store.setDataSet({ max: 100, data: []});
 
-	getServerData(saveCpuUtil, "get cpu");
+	getServerData(saveCpuUtil, "statistics");
 
 	setTimeout(function() {updateHeatmapReal();}, 3000)
 }
@@ -942,12 +943,13 @@ function setButtonStates() {
  * @param  {[Object]} data [The Data to save]
  */
 function saveCpuUtil(data) {
-	var cpu_list = JSON.parse(data);
-	var keys = Object.keys(cpu_list)
+	console.log(data)
+	// var cpu_list = JSON.parse(data);
+	var keys = Object.keys(data)
 
 	for (var i in keys) {
 		var key = keys[i]
-		var util = cpu_list[key];
+		var util = data[key];
 
 		var dates = Object.keys(util)
 		for (var j in dates) {
@@ -959,7 +961,7 @@ function saveCpuUtil(data) {
 	}
 	
 	if (get_cpu_util == true) {
-		setTimeout(function() {getServerData(saveCpuUtil, "get cpu");}, 2000);
+		setTimeout(function() {getServerData(saveCpuUtil, "statistics");}, 2000);
 	}
 }
 

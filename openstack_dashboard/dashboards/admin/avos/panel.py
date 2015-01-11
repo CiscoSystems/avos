@@ -8,7 +8,7 @@ from openstack_dashboard.dashboards.admin import dashboard
 
 
 class Avos(horizon.Panel):
-    name = _("Avos")
+    name = _("AVOS")
     slug = 'avos'
     permissions = ()
 

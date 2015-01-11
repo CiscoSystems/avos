@@ -6,12 +6,14 @@
  *
  */
 
-html { overflow: hidden; height: 100%; border: none; }
+html, body, #container, #main_content, #content_body, .row, .col-xs-12 { height: 100%; border: none; }
+#main_content {height: calc(100% - 40px);}
 /*body { font-size: 100%; zoom: 1; overflow: hidden; width: auto; height: auto; margin: 0px; position: absolute; top: 0px; bottom: 0px; left: 0px; right: 0px; cursor: auto;}*/
+.col-xs-12 { padding-left: 0; padding-right: 0;}
+.row {margin: 0;}
 
-
-#content_body {padding-left: 236px; padding-right: 0px;}
-.layoutwrap { position: relative; margin: 0; height: 900px; width: 100%; overflow: hidden; }
+#content_body {padding-left: 220px; padding-right: 0px;}
+.layoutwrap { position: relative; margin: 0; height: 100%; width: 100%; overflow: hidden; }
 .ui-layout-container { position: absolute; height: calc(100%); width: 100%; top: 0; bottom: 0; left: 0; right: 0;}
 
 .bottom { margin: 15px; bottom: 0; position: absolute; }
@@ -59,7 +61,7 @@ svg, g { background-color: none; }
 
 /* SPLIT PANE & CONTENT-DIVs */
 
-.ui-layout-pane { border: 1px solid #BBB; padding: 0; overflow: auto; background-color: #FFF;}
+.ui-layout-pane { padding: 0; overflow: auto; background-color: #FFF;}
 .ui-layout-content { padding: 10px; position: relative; overflow: auto; }
 .layout-child-container,
 .layout-content-container { padding: 0;	overflow: hidden; }

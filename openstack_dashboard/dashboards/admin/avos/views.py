@@ -291,6 +291,29 @@ class IndexView(views.APIView):
                               ports)
         return ports
 
+    def _get_keypairs(self, request):
+        try:
+            keypairs = api.nova.keypair_list(request)
+        except Exception:
+            keypairs = []
+        LOG.warning(keypairs)
+        data = [{
+                'name': keypair.name,
+                'fingerprint': keypair.fingerprint
+        } for keypair in keypairs]
+        return data
+
+    def _get_security_groups(self, request):
+        try:
+            secgroups = api.nova.SecurityGroupManager.list(request) # @TODO Doesn't Work, commented for now
+        except Exception:
+            secgroups = []
+        LOG.warning(secgroups)
+        data = [{
+            'id': secgroup.id
+        } for secgroup in secgroups]
+        return data
+
 
     def _prepare_gateway_ports(self, routers, ports):
         # user can't see port on external network. so we are
@@ -313,18 +336,37 @@ class IndexView(views.APIView):
                          'fixed_ips': []}
             ports.append(fake_port)
 
+    def _get_meters(self, request):
+        try:
+            meters = api.ceilometer.meter_list(request)
+        except Exception:
+            meters = []
+        LOG.warning(meters)
+        data = [{
+            'name': meter.name,
+            'type': meter.type,
+            'unit': meter.unit,
+            'id': meter.resource_id
+        } for meter in meters]
+        return data
+
+    # def _get_statistics(self, request):
+    #     try:
+    #         stats = api.ceilometer.make_query()
+
     def get(self, request, *args, **kwargs):
-        if self.request.is_ajax() and self.request.GET.get("avos", False):
+        if self.request.is_ajax() and self.request.GET.get("avosstartup", False):
             data = {
                     'flavors': self._get_flavors(request),
                     'floating_ips': self._get_floating_ips(request),
                     'images': self._get_images(request),
-                    #'keypairs': self._get_keypairs(request),
+                    'keypairs': self._get_keypairs(request),
+                    'meters': self._get_meters(request),
                     #'networks': self._get_networks(request),
                     'neutronnetwork': self._get_networks(request),
                     'ports': self._get_ports(request),
                     'routers': self._get_routers(request),
-                    #'security_groups': self._get_security_groups,
+                    # 'security_groups': self._get_security_groups(request),
                     'servers': self._get_servers(request), 
                     #'subnets': self._get_subnets(request), 
                     'volumes': self._get_volumes(request)
@@ -332,58 +374,16 @@ class IndexView(views.APIView):
             self._prepare_gateway_ports(data['routers'], data['ports'])
             json_string = json.dumps(data, ensure_ascii=False)
             return HttpResponse(json_string, content_type='text/json')
+        elif self.request.is_ajax() and self.request.GET.get("statistics", False):
+            data = {
+                'heat': 0.5
+            }
+            LOG.warning("We got some stats!")
+            json_string = json.dumps(data, ensure_ascii=False)
+            return HttpResponse(json_string, content_type='text/json')
         else:
             LOG.warning("We made the wrong request, let's super it!")
             return super(IndexView, self).get(request, *args, **kwargs)
-
-    # def get_data(self, request, *args, **kwargs):
-    #     if self.request.is_ajax() and self.request.GET.get("avos", False):
-    #         LOG.warning("")
-    #         LOG.warning("")
-    #         LOG.warning("")
-    #         LOG.warning(self)
-    #         LOG.warning(request)
-    #         LOG.warning(args)
-    #         LOG.warning("This happened, we got data!")
-    #         return "api.nova.server_list(self.request, all_tenants=True)"
-
-    # def get(self, request, *args, **kwargs):
-    #     LOG.warning("We've made a GET request")
-    #     LOG.warning("isajax: " + str(self.request.is_ajax()))
-    #     LOG.warning("isjson: " + str(self.request.GET.get("avos", False)))
-    #     if self.request.is_ajax() and self.request.GET.get("avos", False):
-    #         LOG.warning("We made the right request!")
-    #         return http.HttpResponse("hello")
-    #         # instances = api.nova.server_list(self.request, all_tenants=True)
-    #         # LOG.warning(instances)
-    #         try:
-    #             instances = api.nova.server_list(self.request, all_tenants=True)
-    #         except:
-    #             LOG.warning("Our instance request fucked up.")
-    #             instances = []
-    #             exceptions.handle(request, _('Unable to retrieve instance list'))
-    #         # data = json.dump([i._apiresource._info for i in instances])
-    #         LOG.warning("So we have a list of instances - woo!")
-    #         LOG.warning(instances)
-    #         LOG.warning("Did that happen?")
-    #         return http.StreamingHttpResponse(instances)
-    #     else:
-    #         LOG.warning("We made the wrong request, let's super it!")
-    #         return super(IndexView, self).get(request, *args, **kwargs)
-    # 	instances = []
-    # 	flavors = []
-    # 	images = []
-    # 	networks = []
-    # 	floating_ips = []
-    # 	keypairs = []
-    # 	security_groups = []
-    # 	volumes = []
-    # 	routers = []
-    # 	subnets = []
-    # 	ports = []
-    # 	neutronnetwork = []
-    #     # Add data to the context here...
-    #     return context
          
     def post(request, *args, **kwargs):
         if request.is_ajax() :
