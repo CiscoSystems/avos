@@ -791,11 +791,12 @@ function loadTopGraph(){
  */
 function openSearch() {
 	// TODO: This is full of UX glitches
-	myLayout.slideOpen('west');
-	$("#fake-search").animate({width: $("#pane-west").width() - 35}, 1000);
+	myLayout.slideOpen('east');
+	$("#fake-search").animate({width: $("#pane-east").width()}, 500);
 }
 
 function closeSearch() {
+	myLayout.slideClosed('east');
 	$("#fake-search").animate({width: 200}, 1000);
 }
 
@@ -1567,7 +1568,7 @@ function loadVolRightPaneInfo(id) {
  *	@param	id		The string id of the element
  */
 function loadNetRightPaneInfo(id) {
-	myLayout.slideOpen('east');
+	openSearch();
 	var network = clusterdata["neutronnetwork"][id];
 	var content = "";
 
