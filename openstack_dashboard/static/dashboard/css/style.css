@@ -77,7 +77,7 @@ svg, g { background-color: none; }
 .ui-layout-north {position: absolute; margin: 0px; top: 0px; bottom: auto; left: 0px; right: 0px; width: auto; z-index: 0; height: 65px; display: block; visibility: visible; overflow: auto;}
 .ui-layout-north ul ul { bottom: auto; margin: 0; margin-top: 1.45em; }
 .ui-layout-south {position: absolute; margin: 0px; top: auto; bottom: 0px; left: 0px; right: 0px; width: auto; z-index: 0; height: 26px; display: block; visibility: visible;}
-#pane-east { overflow-x: hidden; /*put container inside, and assign to that not pane-east */ padding: 10px; }
+#pane-east { overflow-x: hidden; /*put container inside, and assign to that not pane-east */ padding: 10px; -webkit-box-shadow: 3px 0px 20px 6px #DDD;  /* Safari 3-4, iOS 4.0.2 - 4.2, Android 2.3+ */-moz-box-shadow:    3px 0px 20px 6px #DDD;  /* Firefox 3.5 - 3.6 */  box-shadow:         3px 0px 20px 6px #DDD;  /* Opera 10.5, IE 9, Firefox 4+, Chrome 6+, iOS 5 */}
 
 
 .ui-layout-resizer-north { font-size: 1px; text-align: left; overflow: hidden; z-index: 2; cursor: n-resize; top: 87px; width: 1920px; height: 60px; left: 0px;}

@@ -23,90 +23,90 @@ LOG.debug("")
 
 _ISO8601_TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 
-def get_cpu_util_list():
-    nova = novaclient.Client("1.1", username=OS_USERNAME, api_key=OS_PASSWORD, auth_url=OS_ENDPOINT, project_id=OS_TENANT)
-    servers = nova.servers.list(detailed=True)
-    ceilometer = ceilometerclient.get_client("2", os_auth_url=OS_ENDPOINT, os_username=OS_USERNAME, os_password=OS_PASSWORD, os_tenant_name=OS_TENANT )
-    packet = {}
-    for i in servers:
-        u = ceilometer.samples.list(meter_name="cpu_util", q=[{"field":"resource_id","value":i.id}], limit=1)
-        if not u:
-            packet[i.id] = 0
-        else:
-            packet[i.id] = u[0].counter_volume
-            #print u[0].timestamp
-    #print packet
-    return json.dumps(packet)
+# def get_cpu_util_list():
+#     nova = novaclient.Client("1.1", username=OS_USERNAME, api_key=OS_PASSWORD, auth_url=OS_ENDPOINT, project_id=OS_TENANT)
+#     servers = nova.servers.list(detailed=True)
+#     ceilome
+#             packet[i.id] = 0
+#         else:
+#             packet[i.id] = u[0].counter_volume
+#             #print u[0].timestampeter = ceilometerclient.get_client("2", os_auth_url=OS_ENDPOINT, os_username=OS_USERNAME, os_password=OS_PASSWORD, os_tenant_name=OS_TENANT )
+#     packet = {}
+#     for i in servers:
+#         u = ceilometer.samples.list(meter_name="cpu_util", q=[{"field":"resource_id","value":i.id}], limit=1)
+#         if not u:
+#     #print packet
+#     return json.dumps(packet)
 
-def get_new_cpu_util_list(timestamp):
-    ceilometer = ceilometerclient.get_client("2", os_auth_url=OS_ENDPOINT, os_username=OS_USERNAME, os_password=OS_PASSWORD, os_tenant_name=OS_TENANT )
-    packet = {}
-    if not timestamp:
-        t = ceilometer.samples.list(meter_name="cpu_util", limit=1)
-        #print t
-        timestamp = t[0].timestamp
-        ts = iso8601.parse_date(timestamp) - datetime.timedelta(0, 5)
-        timestamp = isotime(ts)
-        #nowoff = datetime.datetime.now() - datetime.timedelta(3, 10)
-        #timestamp = nowoff.isoformat()
-        #print timestamp
-        #timestamp = str(nowoff.year) + "-" + str(nowoff.month) + "-" + str(nowoff.day - 2) + "T" + str(nowoff.hour) + ":" + str(nowoff.minute) + ":" + str(nowoff.second) + "Z"
-    #print timestamp
-    u = ceilometer.samples.list(meter_name="cpu_util",  q=[{"field": "timestamp", "op": "ge", "value": timestamp}])
-    #print u
-    #u = ceilometer.samples.list(meter_name="network.flow.bytes",  limit=1000)
-    for i in u:
-        #packet[]
-        #print i
-        if not i.resource_id in packet:
-            packet[i.resource_id] = {}
-            packet[i.resource_id][i.timestamp] = i.counter_volume
-    return json.dumps(packet)
+# def get_new_cpu_util_list(timestamp):
+#     ceilometer = ceilometerclient.get_client("2", os_auth_url=OS_ENDPOINT, os_username=OS_USERNAME, os_password=OS_PASSWORD, os_tenant_name=OS_TENANT )
+#     packet = {}
+#     if not timestamp:
+#         t = ceilometer.samples.list(meter_name="cpu_util", limit=1)
+#         #print t
+#         timestamp = t[0].timestamp
+#         ts = iso8601.parse_date(timestamp) - datetime.timedelta(0, 5)
+#         timestamp = isotime(ts)
+#         #nowoff = datetime.datetime.now() - datetime.timedelta(3, 10)
+#         #timestamp = nowoff.isoformat()
+#         #print timestamp
+#         #timestamp = str(nowoff.year) + "-" + str(nowoff.month) + "-" + str(nowoff.day - 2) + "T" + str(nowoff.hour) + ":" + str(nowoff.minute) + ":" + str(nowoff.second) + "Z"
+#     #print timestamp
+#     u = ceilometer.samples.list(meter_name="cpu_util",  q=[{"field": "timestamp", "op": "ge", "value": timestamp}])
+#     #print u
+#     #u = ceilometer.samples.list(meter_name="network.flow.bytes",  limit=1000)
+#     for i in u:
+#         #packet[]
+#         #print i
+#         if not i.resource_id in packet:
+#             packet[i.resource_id] = {}
+#             packet[i.resource_id][i.timestamp] = i.counter_volume
+#     return json.dumps(packet)
 
-def get_latest_feature_list():
-    nova = novaclient.Client("1.1", username=OS_USERNAME, api_key=OS_PASSWORD, auth_url=OS_ENDPOINT, project_id=OS_TENANT)
-    servers = nova.servers.list(detailed=True)
-    ceilometer = ceilometerclient.get_client("2", os_auth_url=OS_ENDPOINT, os_username=OS_USERNAME, os_password=OS_PASSWORD, os_tenant_name=OS_TENANT )
-    packet = {}
-    meters = ["cpu_util", "disk.write.requests.rate"]
-    for i in servers:
-        packet[i.id] = {}
-        for j in meters:
-            packet[i.id][j] = {}
-            u = ceilometer.samples.list(meter_name=j, q=[{"field":"resource_id","value":i.id}], limit=1)
-            #print u
-            if not u:
-                #print u
-                packet[i.id][j]["value"] = 0
-                packet[i.id][j]["timestamp"] = 0
-            else:
-                packet[i.id][j]["value"] = u[0].counter_volume
-                packet[i.id][j]["timestamp"] = u[0].timestamp
-    return json.dumps(packet)
+# def get_latest_feature_list():
+#     nova = novaclient.Client("1.1", username=OS_USERNAME, api_key=OS_PASSWORD, auth_url=OS_ENDPOINT, project_id=OS_TENANT)
+#     servers = nova.servers.list(detailed=True)
+#     ceilometer = ceilometerclient.get_client("2", os_auth_url=OS_ENDPOINT, os_username=OS_USERNAME, os_password=OS_PASSWORD, os_tenant_name=OS_TENANT )
+#     packet = {}
+#     meters = ["cpu_util", "disk.write.requests.rate"]
+#     for i in servers:
+#         packet[i.id] = {}
+#         for j in meters:
+#             packet[i.id][j] = {}
+#             u = ceilometer.samples.list(meter_name=j, q=[{"field":"resource_id","value":i.id}], limit=1)
+#             #print u
+#             if not u:
+#                 #print u
+#                 packet[i.id][j]["value"] = 0
+#                 packet[i.id][j]["timestamp"] = 0
+#             else:
+#                 packet[i.id][j]["value"] = u[0].counter_volume
+#                 packet[i.id][j]["timestamp"] = u[0].timestamp
+#     return json.dumps(packet)
 
-def get_latest_network_flow(timestamp):
-    ceilometer = ceilometerclient.get_client("2", os_auth_url=OS_ENDPOINT, os_username=OS_USERNAME, os_password=OS_PASSWORD, os_tenant_name=OS_TENANT )
-    packet = {}
-    if not timestamp:
-        t = ceilometer.samples.list(meter_name="network.flow.bytes", limit=1)
-        #print t
-        timestamp = t[0].timestamp
-        ts = iso8601.parse_date(timestamp) - datetime.timedelta(0, 5)
-        timestamp = isotime(ts)
-        #nowoff = datetime.datetime.now() - datetime.timedelta(3, 10)
-        #timestamp = nowoff.isoformat()
-        #print timestamp
-        #timestamp = str(nowoff.year) + "-" + str(nowoff.month) + "-" + str(nowoff.day - 2) + "T" + str(nowoff.hour) + ":" + str(nowoff.minute) + ":" + str(nowoff.second) + "Z"
-	#print timestamp
-    u = ceilometer.samples.list(meter_name="network.flow.bytes",  q=[{"field": "timestamp", "op": "ge", "value": timestamp}])
-    #u = ceilometer.samples.list(meter_name="network.flow.bytes",  limit=1000)
-    for i in u:
-        #packet[]
-        #print i
-        if not i.resource_metadata["instance_id"] in packet:
-            packet[i.resource_metadata["instance_id"]] = {}
-        packet[i.resource_metadata["instance_id"]][i.timestamp] = json.dumps(i.resource_metadata)
-    return json.dumps(packet)
+# def get_latest_network_flow(timestamp):
+#     ceilometer = ceilometerclient.get_client("2", os_auth_url=OS_ENDPOINT, os_username=OS_USERNAME, os_password=OS_PASSWORD, os_tenant_name=OS_TENANT )
+#     packet = {}
+#     if not timestamp:
+#         t = ceilometer.samples.list(meter_name="network.flow.bytes", limit=1)
+#         #print t
+#         timestamp = t[0].timestamp
+#         ts = iso8601.parse_date(timestamp) - datetime.timedelta(0, 5)
+#         timestamp = isotime(ts)
+#         #nowoff = datetime.datetime.now() - datetime.timedelta(3, 10)
+#         #timestamp = nowoff.isoformat()
+#         #print timestamp
+#         #timestamp = str(nowoff.year) + "-" + str(nowoff.month) + "-" + str(nowoff.day - 2) + "T" + str(nowoff.hour) + ":" + str(nowoff.minute) + ":" + str(nowoff.second) + "Z"
+# 	#print timestamp
+#     u = ceilometer.samples.list(meter_name="network.flow.bytes",  q=[{"field": "timestamp", "op": "ge", "value": timestamp}])
+#     #u = ceilometer.samples.list(meter_name="network.flow.bytes",  limit=1000)
+#     for i in u:
+#         #packet[]
+#         #print i
+#         if not i.resource_metadata["instance_id"] in packet:
+#             packet[i.resource_metadata["instance_id"]] = {}
+#         packet[i.resource_metadata["instance_id"]][i.timestamp] = json.dumps(i.resource_metadata)
+#     return json.dumps(packet)
 
 def isotime(at=None, subsecond=False):
     """Stringify time in ISO 8601 format."""
@@ -213,13 +213,17 @@ class IndexView(views.APIView):
             console = 'vnc'
         LOG.warning(servers)
         data = [{
+                'addresses': server.addresses,
+                'console': console,
+                'created': server.created,
+                'flavor': server.flavor,
+                'id': server.id,
+                'image': server.image,
+                'key_name': server.key_name,
                 'name': server.name,
                 'status': server.status,
-                'console': console,
-                'task': getattr(server, 'OS-EXT-STS:task_state'),
-                'image': server.image,
-                'id': server.id,
-                'addresses': server.addresses
+                # 'os-extended-volumes:volumes_attached': getattr(server, 'os-extended-volumes:volumes_attached'),
+                'task': getattr(server, 'OS-EXT-STS:task_state')
             } for server in servers]
         self.add_resource_url('horizon:project:instances:detail', data)
         return data

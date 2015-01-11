@@ -4,7 +4,6 @@
 
 {% block css %}
   {% include "_stylesheets.html" %}
-
   <link href='{{ STATIC_URL }}dashboard/css/style.css' type='text/css' media='screen' rel='stylesheet' />
 {% endblock %}
 
@@ -16,11 +15,12 @@
 <script type='text/javascript' src='{{ STATIC_URL }}dashboard/js/jquery-layout-latest.js'></script>
 <script type='text/javascript' src='{{ STATIC_URL }}dashboard/js/jquery.dataTables.js'></script>
 <script type='text/javascript' src='{{ STATIC_URL }}dashboard/js/jquery.fittext.js'></script>
-<script type='text/javascript' src="{{ STATIC_URL }}dashboard/js/d3.js"></script>
+<!-- <script type='text/javascript' src="{{ STATIC_URL }}dashboard/js/d3.js"></script> -->
 <script type='text/javascript' src="{{ STATIC_URL }}dashboard/js/heatmap.js"></script>
-<script type='text/javascript' src="{{ STATIC_URL }}dashboard/js/rickshaw.js"></script>
-<script type='text/javascript' src="{{ STATIC_URL }}dashboard/js/bootstrap.js"></script>
-<script type='text/javascript' src='{{ STATIC_URL }}dashboard/js/credentials.js'></script>
+<!-- <script type='text/javascript' src="{{ STATIC_URL }}dashboard/js/rickshaw.js"></script> -->
+<!-- <script type='text/javascript' src="{{ STATIC_URL }}dashboard/js/bootstrap.js"></script> -->
+<!-- <script type='text/javascript' src='{{ STATIC_URL }}dashboard/js/credentials.js'></script> -->
+<script type='text/javascript' src='{{ STATIC_URL }}dashboard/js/utils.js'></script>
 <script type='text/javascript' src='{{ STATIC_URL }}dashboard/js/main.js'></script>
 
 <div class="layoutwrap" unresolved>
@@ -96,14 +96,14 @@
 	</div>
 </div> -->
 
-<div id='pane-south' class='ui-layout-south ui-layout-pane ui-layout-pane-south'>
+<!-- <div id='pane-south' class='ui-layout-south ui-layout-pane ui-layout-pane-south'>
 		<p class='center compress'>Debugging Buttons:</p>
 	<button id='openAllPanes' class='ui-layout-button-open ui-layout-button-open-north ui-layout-button-open-south ui-layout-button-open-west ui-layout-button-open-east' title='Open'>Open All Panes</button>
 	<button id='closeAllPanes' class='ui-layout-button-close ui-layout-button-close-north ui-layout-button-close-south ui-layout-button-close-west ui-layout-button-close-east' title='Close'>Close All Panes</button>
 	<button id='toggleAllPanes' class='ui-layout-button-toggle ui-layout-button-toggle-north ui-layout-button-toggle-south ui-layout-button-toggle-west ui-layout-button-toggle-east'>Toggle All Panes</button>
 	<button id='btnReset' class='hidden' onclick='myLayout.loadState(stateResetSettings, true)' style='display: inline-block;'>Reset State</button>
 	<button onclick='debugData(myLayout.options.west)'>West Options</button>
-</div>
+</div> -->
 
 <div id='pane-east' class='ui-layout-east ui-layout-pane ui-layout-pane-east'>
 	<table cellpadding="0" cellspacing="0" border="0" class="display" id="entity-table">
@@ -117,11 +117,14 @@
         <tbody>
         </tbody>
       </table>
+      <div id="entity-details"></div>
 </div>
 
 <div id='pane-center' class='ui-layout-center ui-layout-pane ui-layout-pane-center ui-layout-pane-hover ui-layout-pane-center-hover ui-layout-pane-open-hover ui-layout-pane-center-open-hover'>
+	<!-- <div class="bottom" ng-controller="buttonCtrl"> -->
 	<div class="bottom">
 		<div class="btn-group">
+			<!-- <button ng-repeat="button in leftbuttons" id="button-toggle-{{button.id}}" type="button" class="btn btn-default" datatoggle="button" title="{{button.title}}" ng-click="button.function"><span class="glyphicon glyphicon-{{button.icon}}">{{button.title}}</span></button> -->
 			<div class="btn-group dropup">
 				<button id="btn-toggle-home" type="button" class="btn btn-default dropdown-toggle" title="Show Whole Cluster" data-toggle="dropdown"><span class="glyphicon glyphicon-cog"></span></button>
 				<ul class="dropdown-menu" role="menu">
@@ -140,12 +143,13 @@
 			<button id="btn-toggle-ntwk" type="button" class="btn btn-default" data-toggle="button" title="Toggle Networks"><span class="glyphicon glyphicon-globe"></span></button>
 			<button id="btn-toggle-alert" type="button" class="btn btn-default" data-toggle="button" title="Toggle Alerts"><span class="glyphicon glyphicon-bell"></span></button>
 			<button id="btn-edit" type="button" class="btn btn-default" title="Edit Mode" data-toggle="button"><span class="glyphicon glyphicon-edit"></span></button>
+			<!-- <button type="button" class="btn btn-default" data-toggle="button"><span class="glyphicon glyphicon-font">{{left_buttons}}</span></button> -->
 		</div>
 	</div>
 
 	<div class="bottom right">
 		<div class="btn-group">
-			<button id="btn-zoomr" type="button" class="btn btn-default" title="{{label.resetzoom}}" onclick="resetZoom()"><span class="glyphicon glyphicon-cloud"></span></button>
+			<button id="btn-zoomr" type="button" class="btn btn-default" title="Reset Zoom" onclick="resetZoom()"><span class="glyphicon glyphicon-cloud"></span></button>
 			<button id="btn-legend" type="button" class="btn btn-default" title="Help" data-toggle="modal" data-target="#myModal" onclick="loadHelp()"><span class="glyphicon glyphicon-question-sign"></span></button>
 			<button id="btn-settings" type="button" class="btn btn-default" title="Settings" data-toggle="modal" data-target="#myModal" onclick="loadSettings()"><span class="glyphicon glyphicon-wrench"></span></button>
 		</div>
