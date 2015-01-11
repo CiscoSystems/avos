@@ -57,6 +57,10 @@ var nodePaths = {
 	null: null
 }
 
+var label = {
+	"resetzoom": "Reset Zoom"
+}
+
 // Debugging Vars
 
 var clusterdata = undefined;
@@ -961,7 +965,7 @@ function saveCpuUtil(data) {
 	}
 	
 	if (get_cpu_util == true) {
-		setTimeout(function() {getServerData(saveCpuUtil, "statistics");}, 2000);
+		setTimeout(function() {getServerData(saveCpuUtil, "statistics");}, 5000);
 	}
 }
 

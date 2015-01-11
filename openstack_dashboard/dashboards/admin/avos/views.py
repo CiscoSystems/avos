@@ -350,9 +350,25 @@ class IndexView(views.APIView):
         } for meter in meters]
         return data
 
-    # def _get_statistics(self, request):
-    #     try:
-    #         stats = api.ceilometer.make_query()
+    def _get_statistics(self, request, timestamp):
+        try:
+            if not timestamp:
+                LOG.warning("we have no ts")
+                t = api.ceilometer.sample_list(meter_name="cpu_util")
+                LOG.warning(t)
+                timestamp = t[0].timestamp
+                ts = iso8601.parse_date(timestamp) - datetime.timedelta(0, 5)
+                timestamp = isotime(ts)
+                LOG.warning(timestamp)
+            stats = api.ceilometer.sample_list("cpu_util", query=[{"field": "timestamp", "op": "ge", "value": timestamp}])
+            # u = ceilometer.samples.list(meter_name="cpu_util",  q=[{"field": "timestamp", "op": "ge", "value": timestamp}])
+        except Exception:
+            stats = []
+        LOG.warning(stats)
+        data = [{
+            "timestamp": stat.timestamp
+        } for stat in stats]
+        return data
 
     def get(self, request, *args, **kwargs):
         if self.request.is_ajax() and self.request.GET.get("avosstartup", False):
@@ -376,7 +392,7 @@ class IndexView(views.APIView):
             return HttpResponse(json_string, content_type='text/json')
         elif self.request.is_ajax() and self.request.GET.get("statistics", False):
             data = {
-                'heat': 0.5
+                'stats': self._get_statistics(request, False)
             }
             LOG.warning("We got some stats!")
             json_string = json.dumps(data, ensure_ascii=False)
