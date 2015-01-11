@@ -351,22 +351,28 @@ class IndexView(views.APIView):
         return data
 
     def _get_statistics(self, request, timestamp):
+        # t = api.ceilometer.sample_list(request, meter_name="cpu_util")
+        # LOG.warning(t)
         try:
             if not timestamp:
-                LOG.warning("we have no ts")
-                t = api.ceilometer.sample_list(meter_name="cpu_util")
-                LOG.warning(t)
+                # LOG.warning("we have no ts")
+                t = api.ceilometer.sample_list(request, meter_name="cpu_util")
+                # LOG.warning(t)
                 timestamp = t[0].timestamp
                 ts = iso8601.parse_date(timestamp) - datetime.timedelta(0, 5)
                 timestamp = isotime(ts)
-                LOG.warning(timestamp)
-            stats = api.ceilometer.sample_list("cpu_util", query=[{"field": "timestamp", "op": "ge", "value": timestamp}])
+                # LOG.warning(timestamp)
+            stats = api.ceilometer.sample_list(request, "cpu_util", query=[{"field": "timestamp", "op": "ge", "value": timestamp}])
             # u = ceilometer.samples.list(meter_name="cpu_util",  q=[{"field": "timestamp", "op": "ge", "value": timestamp}])
         except Exception:
             stats = []
-        LOG.warning(stats)
+        # LOG.warning(stats)
         data = [{
-            "timestamp": stat.timestamp
+            "timestamp": stat.timestamp,
+            "counter_name": stat.counter_name,
+            "resource_id": stat.resource_id,
+            "counter_unit": stat.counter_unit,
+            "counter_volume": stat.counter_volume
         } for stat in stats]
         return data
 
@@ -394,7 +400,7 @@ class IndexView(views.APIView):
             data = {
                 'stats': self._get_statistics(request, False)
             }
-            LOG.warning("We got some stats!")
+            # LOG.warning("We got some stats!")
             json_string = json.dumps(data, ensure_ascii=False)
             return HttpResponse(json_string, content_type='text/json')
         else:

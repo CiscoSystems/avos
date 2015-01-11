@@ -214,7 +214,6 @@ function loadInitialServers(data) {
 	clusterdata["routers"] = cleanArrayItems(clusterdata["routers"]);
 	clusterdata["volumes"] = cleanArrayItems(clusterdata["volumes"]);
 	clusterdata["meters"] = cleanArrayItems(clusterdata["meters"], "name");
-	console.log(clusterdata);
 	// Since Neutron is annoying and formats it's API data differently, we must first clean it up.
 	// clusterdata["routers"] = cleanJsonByID(clusterdata["routers"]);
 	// clusterdata["subnets"] = cleanJsonByID(clusterdata["subnets"]);
@@ -313,10 +312,12 @@ function loadInitialServers(data) {
 	// 	clusterdata["lookup"][subnet_keys[i]] = "subnets";
 	// }
 
-	console.log("We should have just loaded everything.")
+	// console.log("We should have just loaded everything.")
 
 	addEventListeners();
 	createHeatmap();
+
+	console.log(clusterdata);
 }
 
 function cleanArrayItems(array, key) {
@@ -947,25 +948,26 @@ function setButtonStates() {
  * @param  {[Object]} data [The Data to save]
  */
 function saveCpuUtil(data) {
-	console.log(data)
-	// var cpu_list = JSON.parse(data);
-	var keys = Object.keys(data)
+	var d = cleanArrayItems(data.stats, "resource_id")
+	// console.log(d)
+	var keys = Object.keys(d)
 
 	for (var i in keys) {
 		var key = keys[i]
-		var util = data[key];
+		var util = d[key];
+		clusterdata["servers"][key]["statistics"]["cpu_util"][util.timestamp] = util.counter_volume;
 
-		var dates = Object.keys(util)
-		for (var j in dates) {
-			if (clusterdata["servers"][key]) {
-				var date = dates[j]
-				clusterdata["servers"][key]["statistics"]["cpu_util"][date] = util[date];
-			}
-		}
+		// var dates = Object.keys(util)
+		// for (var j in dates) {
+		// 	if (clusterdata["servers"][key]) {
+		// 		var date = dates[j]
+		// 		clusterdata["servers"][key]["statistics"]["cpu_util"][date] = util[date];
+		// 	}
+		// }
 	}
 	
 	if (get_cpu_util == true) {
-		setTimeout(function() {getServerData(saveCpuUtil, "statistics");}, 5000);
+		setTimeout(function() {getServerData(saveCpuUtil, "statistics");}, 10000);
 	}
 }
 
@@ -991,13 +993,16 @@ function updateHeatmapReal(data) {
 	else {
 		for (var i in clusterdata["servers"]) {
 			if (clusterdata["servers"][i]["statistics"]["cpu_util"] && clusterdata["servers"][i]["status"] != "SHUTOFF") {
+				// console.log("We have stats etc for this instance!")
 				var node = "#circle" + i;
 				//var latestdate = Object.keys(clusterdata["servers"][i]["statistics"]["cpu_util"]).sort().pop()
-				var value = clusterdata["servers"][i]["statistics"]["cpu_util"][this.length];
+				var latestts = Object.keys(clusterdata["servers"][i]["statistics"]["cpu_util"]);
+				var value = clusterdata["servers"][i]["statistics"]["cpu_util"][latestts[latestts.length - 1]];
 				if (value === undefined) {
+					// console.log("val = no")
 					value = 0;
 					value -= (10 * Math.random()) * (Math.log(Math.random()));
-				}
+				} //else {console.log("We have a real CPU util for this instance: " + value)}
 				//console.log(value);
 				var node_heat_x = $(node).position()['left'] + offsetx;
 				var node_heat_y = $(node).position()['top'] + offsety;
