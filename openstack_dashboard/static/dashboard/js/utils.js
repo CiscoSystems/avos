@@ -19,6 +19,58 @@ function generateRandomWord() {
 	return word[Math.floor(Math.random() * word.length)];
 }
 
+function formatSizeUnits(bytes){
+	bytes = bytes / 8
+  if      (bytes>=1073741824) {bytes=(bytes/1073741824).toFixed(2)+' GB';}
+  else if (bytes>=1048576)    {bytes=(bytes/1048576).toFixed(2)+' MB';}
+  else if (bytes>=1024)       {bytes=(bytes/1024).toFixed(2)+' KB';}
+  else if (bytes>1)           {bytes=bytes+' bytes';}
+  else if (bytes==1)          {bytes=bytes+' byte';}
+  else                        {bytes='0 byte';}
+  return bytes;
+}
+
+/**
+ * Converts a date into a sting of the length of time from the current date in the form of "xd yh zm"
+ * where x is the number of days, y is the number of hours, and z is the number of minutes.
+ *
+ * @param  	createdOn	 The date to be used in calculation.
+ */
+function calculateUptime(createdOn) {
+	uptimeMili = (new Date().getTime()) - (new Date(createdOn).getTime());
+	uptimeDays = Math.floor(uptimeMili / 60000 / 60 / 24)
+	uptimeHours = Math.floor(uptimeMili/60000/60)-uptimeDays*24;
+	uptimeMins = Math.floor(uptimeMili/60000)-(((uptimeDays*24)+uptimeHours)*60);
+	if (uptimeDays == 0) {
+		if (uptimeHours == 0) {
+			uptimeString = uptimeMins + "m";
+		}
+		else {
+			uptimeString = uptimeHours + "h " + uptimeMins + "m";
+		}
+	}
+	else {
+		uptimeString = uptimeDays + "d " + uptimeHours + "h " + uptimeMins + "m";
+	}	
+	return uptimeString;
+}
+
+/**
+ *	Prints the data set for whatever calls it
+ */
+function printthis() {
+	console.log(this);
+}
+
+/**
+ *	Console.log cannot be used as a callback, so we use this function instead.
+ *
+ *	@param str		String to print
+ */
+function print(str) {
+	console.log(JSON.parse(str));
+}
+
 function generateRandomString() {
 	var length = randbetween(3, 9);
 	var string = "";
@@ -65,6 +117,90 @@ function cleanJsonByID(data) {
 function inventResourceID() {
 	function s4() { return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1); }
 	return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+}
+
+function addDummyImages() {
+
+	var list = ["ubuntu", "redhat", "suse", "linux", "wordpress", "windows", "centos", "fedora", "debian", "hadoop", "magento", "drupal", "android", "noideawhatthisimageis"]
+
+	for (var i in list) {
+		var image_id = inventResourceID();
+		clusterdata["images"][image_id] = getStructure(image_id, list[i]);
+	}
+
+	function getStructure(id, name) {
+		return {"status":"ACTIVE","updated":"2014-05-02T21:39:06Z","name":name,"links":[{"href":"http://us-texas-1.cisco.com:8774/v2/72cdf4b772444f55bdbf7b050021f628/images/4ceaf1e6-69bb-49ad-8f15-a30f3dc4004b","rel":"self"},{"href":"http://us-texas-1.cisco.com:8774/72cdf4b772444f55bdbf7b050021f628/images/4ceaf1e6-69bb-49ad-8f15-a30f3dc4004b","rel":"bookmark"},{"href":"http://10.202.4.8:9292/72cdf4b772444f55bdbf7b050021f628/images/4ceaf1e6-69bb-49ad-8f15-a30f3dc4004b","type":"application/vnd.openstack.image","rel":"alternate"}],"created":"2014-05-02T21:25:48Z","minDisk":0,"progress":100,"minRam":0,"metadata":{},"id":id,"OS-EXT-IMG-SIZE:size":1033895936}
+	}
+}
+
+/**
+ * Create a network of components randomly for testing
+ * @param  {[int]} size [The approximate size of the cluster to create (in VMs)]
+ */
+function createRandomCluster(size) {
+
+	var pubnetwork_id = inventResourceID();
+	var pubnetwork_name = "publicnetwork-" + pubnetwork_id;
+	clusterdata["neutronnetwork"][pubnetwork_id] = {"admin_state_up": true, "id": pubnetwork_id, "name": pubnetwork_name, "router:external": true, "shared": false, "status": "ACTIVE", "subnets": ["12345"], "tenant_id": "72cdf4b772444f55bdbf7b050021f628" };
+	addNetworkToDash(pubnetwork_id);
+
+	var image_ids = Object.keys(clusterdata["images"])
+	var first = true;
+	// Create a public network
+	while (size > 0) {
+
+
+		var network_id = inventResourceID();
+		//console.log(network_id)
+		var network_name = "network-" + network_id;
+		clusterdata["neutronnetwork"][network_id] = {"admin_state_up": true, "id": network_id, "name": network_name, "router:external": false, "shared": false, "status": "ACTIVE", "subnets": ["12345"], "tenant_id": "72cdf4b772444f55bdbf7b050021f628" };
+		addNetworkToDash(network_id);
+
+		if (Math.random() > 0.5 || first == true) {
+			router_id = inventResourceID();
+			var router_name = "router-" + router_id;
+			clusterdata["routers"][router_id] = {"status":"ACTIVE","external_gateway_info":{"network_id": pubnetwork_id,"enable_snat":true},"name": router_name,"admin_state_up":true,"tenant_id":"72cdf4b772444f55bdbf7b050021f628","routes":[],"id": router_id}
+			var pubport_id = inventResourceID();
+			clusterdata["ports"][pubport_id] = {"status":"ACTIVE","name":"","allowed_address_pairs":[],"admin_state_up":true,"network_id":pubnetwork_id,"tenant_id":"72cdf4b772444f55bdbf7b050021f628","extra_dhcp_opts":[],"device_owner":"network:router_interface","mac_address":"fa:16:3e:e1:e2:37","fixed_ips":[{"subnet_id":"a43db26b-925f-4ff9-a3be-9ce1a95ef191","ip_address":"192.168.20.1"}],"id":pubport_id,"security_groups":["2d615edb-266e-40ac-b7ea-e5436915b25c"],"device_id": router_id};
+			addRouterToDash(router_id)
+			first = false;
+		}
+
+		port_id = inventResourceID();
+		clusterdata["ports"]["port_id"] = {"status":"ACTIVE","name":"","allowed_address_pairs":[],"admin_state_up":true,"network_id":network_id,"tenant_id":"72cdf4b772444f55bdbf7b050021f628","extra_dhcp_opts":[],"device_owner":"network:router_interface","mac_address":"fa:16:3e:e1:e2:37","fixed_ips":[{"subnet_id":"a43db26b-925f-4ff9-a3be-9ce1a95ef191","ip_address":"192.168.20.1"}],"id":port_id,"security_groups":["2d615edb-266e-40ac-b7ea-e5436915b25c"],"device_id": router_id};
+
+		addLinkToForceGraph(router_id, network_id);
+
+
+		var image = image_ids[Math.floor(Math.random() * image_ids.length)];
+		for (var i = Math.random() * 12 + 3; i > 0; i --) {
+			var instance_id = inventResourceID();
+			var instance_name = "inst" + generateRandomString();
+			clusterdata["servers"][instance_id] = {"OS-EXT-STS:task_state":null,"addresses":{},"links":[{"href":"http://us-texas-1.cisco.com:8774/v2/72cdf4b772444f55bdbf7b050021f628/servers/1e3c47f1-7275-4af4-b362-e527171f6b84","rel":"self"},{"href":"http://us-texas-1.cisco.com:8774/72cdf4b772444f55bdbf7b050021f628/servers/1e3c47f1-7275-4af4-b362-e527171f6b84","rel":"bookmark"}],"image":{"id":image,"links":[{"href":"http://us-texas-1.cisco.com:8774/72cdf4b772444f55bdbf7b050021f628/images/4ceaf1e6-69bb-49ad-8f15-a30f3dc4004b","rel":"bookmark"}]},"OS-EXT-STS:vm_state":"active","OS-SRV-USG:launched_at":"2014-05-16T18:57:07.000000","flavor":{"id":1,"links":[{"href":"http://us-texas-1.cisco.com:8774/72cdf4b772444f55bdbf7b050021f628/flavors/b4839a95-fed5-4198-bfd1-0d4105044e69","rel":"bookmark"}]},"id":instance_id,"security_groups":[{"name":"default"},{"name":"elasticsearch"}],"user_id":"d7776f89e40942bb9ec675cb9e26e52f","OS-DCF:diskConfig":"MANUAL","accessIPv4":"","accessIPv6":"","progress":0,"OS-EXT-STS:power_state":1,"OS-EXT-AZ:availability_zone":"alln01-1-csx","config_drive":"","status":"ACTIVE","updated":"2014-05-16T18:57:07Z","hostId":"a68025b956ba8e07af877f6c49443d304d2ee959aaafa7e3d55fb2d3","OS-SRV-USG:terminated_at":null,"key_name":"throwaway","name": instance_name,"created":"2014-05-16T18:56:59Z","tenant_id":"72cdf4b772444f55bdbf7b050021f628","os-extended-volumes:volumes_attached":[{"id":"83b95885-8798-4ee1-9e6c-d3291a889428"}],"metadata":{}}
+			clusterdata["servers"][instance_id]["addresses"][network_name] = [{"OS-EXT-IPS-MAC:mac_addr":"fa:16:3e:68:d6:35","version":4,"addr":"192.168.20.19","OS-EXT-IPS:type":"fixed"}];
+			addServerToDash(instance_id)
+			size --;
+			if (Math.random() > 0.3) {
+				for (var j = Math.random() * 5; j > 1; j--) {
+					var volume_id = inventResourceID();
+					var volume_name = "vol-" + volume_id;
+					clusterdata["volumes"][volume_id] = {"status":"in-use","name":volume_name,"display_name": volume_name,"attachments":[{"device":"vda","server_id":instance_id,"volume_id":volume_id,"host_name":null,"id": volume_id}],"availability_zone":"nova","bootable":"true","created_at":"2014-05-16T18:47:04.000000","display_description":null,"volume_type":"None","snapshot_id":null,"source_volid":null,"size":50,"id": volume_id,"metadata":{"readonly":"False","attached_mode":"rw"}}
+					addVolumeToDash(volume_id);
+				}
+			}
+			
+		}
+	}
+}
+
+/**
+ * Simple function to create a random cluster, for testing
+ * @param  {[int]} size [The number of instances to create (roughly)]
+ */
+function developerMode(size) {
+	//plot_heatmap = false;
+	addDummyImages();
+	createRandomCluster(size);
 }
 
 function normalRandom(mean, variance) {

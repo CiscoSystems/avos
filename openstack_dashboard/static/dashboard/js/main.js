@@ -6,37 +6,7 @@
  *
  */
 
-// var hz = angular.module('hz');
-
-// hz.controller("buttonCtrl", function($scope){
-// 	$scope.leftbuttons = [
-// 		{'id':'labels', 'title': 'Labels', 'function': function() {alert("hello")}, 'icon': 'font'},
-// 		{'id':'heat', 'title': 'Toggle Heatmap', 'function': "Hello", 'icon': 'fire'},
-// 		{'id':'list', 'title': 'Toggle List', 'function': "Hello", 'icon': 'list'},
-// 		{'id':'graph', 'title': 'Toggle Graph', 'function': "Hello", 'icon': 'stats'},
-// 		{'id':'hdd', 'title': 'Toggle Volumes', 'function': "Hello", 'icon': 'hdd'},
-// 		{'id':'ntwk', 'title': 'Toggle Networks', 'function': "Hello", 'icon': 'globe'},
-// 		{'id':'alert', 'title': 'Toggle Alerts', 'function': "Hello", 'icon': 'bell'},
-// 		{'id':'edit', 'title': 'Edit Mode', 'function': "Hello", 'icon': 'edit'}
-// 	];
-
-// });
-
-var myLayout;
-
-// Debugging Vars
-
-var clusterdata = undefined;
-var node_clicked = false;
-var scale_save = null;
-var translate_save = null;
-var plot_heatmap = true;
-
-var get_cpu_util = true
-var net_flow_live = false
-
 $(document).ready(function() {
-
 	loadPaneLayout();
 	loadNewForceGraph();
 	setButtonStates();
@@ -62,6 +32,36 @@ $(document).ready(function() {
 	});
 
 });
+
+var myLayout;
+
+// Debugging Vars
+
+var clusterdata = undefined;
+var node_clicked = false;
+var scale_save = null;
+var translate_save = null;
+var labelVisible = false;
+var plot_heatmap = true;
+
+var get_cpu_util = true
+var net_flow_live = false
+
+// var hz = angular.module('hz');
+
+// hz.controller("buttonCtrl", function($scope){
+// 	$scope.leftbuttons = [
+// 		{'id':'labels', 'title': 'Labels', 'function': function() {alert("hello")}, 'icon': 'font'},
+// 		{'id':'heat', 'title': 'Toggle Heatmap', 'function': "Hello", 'icon': 'fire'},
+// 		{'id':'list', 'title': 'Toggle List', 'function': "Hello", 'icon': 'list'},
+// 		{'id':'graph', 'title': 'Toggle Graph', 'function': "Hello", 'icon': 'stats'},
+// 		{'id':'hdd', 'title': 'Toggle Volumes', 'function': "Hello", 'icon': 'hdd'},
+// 		{'id':'ntwk', 'title': 'Toggle Networks', 'function': "Hello", 'icon': 'globe'},
+// 		{'id':'alert', 'title': 'Toggle Alerts', 'function': "Hello", 'icon': 'bell'},
+// 		{'id':'edit', 'title': 'Edit Mode', 'function': "Hello", 'icon': 'edit'}
+// 	];
+
+// });
 
 /**
  * Master function to pull data from the server
@@ -97,97 +97,19 @@ function loadInitialServers(data) {
 	clusterdata["volumes"] = cleanArrayItems(clusterdata["volumes"]);
 	clusterdata["meters"] = cleanArrayItems(clusterdata["meters"], "name");
 
-	/*----------  Networks  ----------*/
+	Object.keys(clusterdata['neutronnetwork']).forEach(function(net) { addNetworkToDash(net); });
+	Object.keys(clusterdata["routers"]).forEach(function(rou) { addRouterToDash(rou); });
+	Object.keys(clusterdata["servers"]).forEach(function(serv) { addServerToDash(serv); });
+	Object.keys(clusterdata["volumes"]).forEach(function(vol) { addVolumeToDash(vol); });
 
-	var network_keys = Object.keys(clusterdata["neutronnetwork"])
+	Object.keys(clusterdata["flavors"]).forEach(function(flav) { clusterdata["lookup"][flav] = "flavors" });
+	Object.keys(clusterdata["floating_ips"]).forEach(function(flip) { clusterdata["lookup"][flip] = "floating_ips" });
+	Object.keys(clusterdata["images"]).forEach(function(img) { clusterdata["lookup"][img] = "images" });
+	Object.keys(clusterdata["ports"]).forEach(function(port) { clusterdata["lookup"][port] = "ports" });
 
-	for (var i in network_keys) {
-		var netkey = network_keys[i];
-		addNetworkToDash(netkey);
-	}
-
-	/*----------  Routers  ----------*/
-
-	var router_keys = Object.keys(clusterdata["routers"]);
-	
-	for (var i in router_keys) {
-		var roukey = router_keys[i];
-		addRouterToDash(roukey);
-	}
-
-	/*----------  VMs (Servers)  ----------*/
-
-	var server_keys = Object.keys(clusterdata["servers"])
-
-	for (var i in server_keys) {
-		var key = server_keys[i];
-		addServerToDash(key);
-	}
-
-	/*----------  Volumes  ----------*/
-
-	var volume_keys = Object.keys(clusterdata["volumes"])
-
-	for (var i in volume_keys) {
-		var volkey = volume_keys[i];
-		addVolumeToDash(volkey);
-	}
-
-	/*----------  Flavors  ----------*/
-
-	var flavor_keys = Object.keys(clusterdata["flavors"])
-
-	for (var i in flavor_keys) {
-		clusterdata["lookup"][flavor_keys[i]] = "flavors"
-	}
-
-	/*----------  Floating_IPs  ----------*/
-
-	var ip_keys = Object.keys(clusterdata["floating_ips"]) 
-
-	for (var i in ip_keys) {
-		clusterdata["lookup"][ip_keys[i]] = "floating_ips";
-	}
-
-	/*----------  Images  ----------*/
-
-	var image_keys = Object.keys(clusterdata["images"]) 
-
-	for (var i in image_keys) {
-		clusterdata["lookup"][image_keys[i]] = "images";
-	}
-
-	/*----------  Networks  ----------*/
-
-	// var nova_network_keys = Object.keys(clusterdata["networks"]) 
-
-	// for (var i in nova_network_keys) {
-	// 	clusterdata["lookup"][nova_network_keys[i]] = "networks";
-	// }
-
-	/*----------  Ports  ----------*/
-
-	var port_keys = Object.keys(clusterdata["ports"]) 
-
-	for (var i in port_keys) {
-		clusterdata["lookup"][port_keys[i]] = "ports";
-	}
-
-	/*----------  Security Groups  ----------*/
-
-	// var security_keys = Object.keys(clusterdata["security_groups"]) 
-
-	// for (var i in security_keys) {
-	// 	clusterdata["lookup"][security_keys[i]] = "security_groups";
-	// }
-
-	/*----------  SubNets  ----------*/
-
-	// var subnet_keys = Object.keys(clusterdata["subnets"]) 
-
-	// for (var i in subnet_keys) {
-	// 	clusterdata["lookup"][subnet_keys[i]] = "subnets";
-	// }
+	//Object.keys(clusterdata["networks"]).forEach(function(net) { clusterdata["lookup"][net] = "networks" });
+	//Object.keys(clusterdata["security_groups"]).forEach(function(sec) { clusterdata["lookup"][sec] = "security_groups" });
+	//Object.keys(clusterdata["subnets"]).forEach(function(subnet) { clusterdata["lookup"][subnet] = "subnets" });
 
 	// console.log("We should have just loaded everything.")
 
@@ -244,6 +166,7 @@ function addRouterToDash(key) {
  */
 function addServerToDash(key) {
 	clusterdata["lookup"][key] = "servers";
+	clusterdata["servers"][key]['volumes'] = []
 	addNodeToForceGraph(key, "serv", 18);
 	addToListPane(key, "serv", clusterdata["servers"][key]["name"]);
 	$("#" + key).click(function(){loadInstRightPaneInfoRef(this.id); /*$("#" + key).data("opentips")[0].hide()*/});
@@ -279,8 +202,10 @@ function addVolumeToDash(key) {
 	addToListPane(key, "vol", name)
 
 	for (var j in clusterdata["volumes"][key]["attachments"]) {
+		var serv = clusterdata['volumes'][key]["attachments"][j]["server_id"];
 		// console.log("Linking vol: " + key + " with instance " + clusterdata['volumes'][key]["attachments"][j]["server_id"])
-		addLinkToForceGraph(key, clusterdata['volumes'][key]["attachments"][j]["server_id"]);
+		addLinkToForceGraph(key, serv);
+		clusterdata['servers'][serv]['volumes'].push(key)
 	}
 	$("#circle" + key).dblclick(function(){
 		loadVolRightPaneInfo(this.id.substring(6))
@@ -438,61 +363,20 @@ function resetZoom() {
 	innervis.attr("transform", "translate(" + zoom.translate() + ")" + " scale(" + zoom.scale() + ")");
 }
 
-/**
- *	Returns a colour depending on the state of an instance
- *
- *	@param 	name 	the ID of the element. Used to lookup it's status.
- */
-function getServerStateColor(name) {
-	var state = clusterdata["servers"][name]["status"];
-	if (state == "ACTIVE") {return "#5cb85c";}
-	else if (state == "ERROR") {return "#f0ad4e"}
-	else if (state == "BUILD") {return "#428bca"}
-	else {return "#d9534f";}
-}
-
-/**
- *  Returns a charge value depending on the type of node
- *
- *  @param	type	The element type (server, volume, net etc)
- */
-function getNodeCharge(type) {
-	//console.log(type);
-	if (type == "serv") {return [-1000]; }
-	else if (type == "vol") { return [-400];	}
-	else if (type == "net") { return [-4000]; }
-	else if (type == "rou") { return [-5000]; }
-	else { return [-800]; }
-}
-
-/**
- *  Returns a charge value depending on the type of node
- *
- *  @param	type	The element type (server, volume, net etc)
- */
-function getNodeGravity(type) {
-	return 0.12;
-
-	if (type == "rou") {return [0.12]; }
-	else { return [0.12]; }
-}
-
-/**
- *	Returns the colour of a node depending on it's type
- *
- *	@param 	type 	The element type (server, volume, net etc)
- */
-function getNodeColor(type) {
-	//console.log(type);
-	if (type == "serv") {return "#678"; }
-	else if (type == "vol") { return "#ffa03a";	}
-	else if (type == "net") { return "brown"; }
-	else if (type == "rou") { return "purple"; }
-	else { return "#087000"; }
-}
-
 // TODO: Currently unimplemented. On redraw, any node id in this array will be set to full opacity, and others to 50%
 var current_selection = []
+
+var nodeCharge = {'serv': -1000, 'vol': -400, 'net': -4000, 'rou': -5000}
+var nodeColor = {'serv': "#678", 'vol': "#ffa03a", 'net': "brown", 'rou': "purple"}
+var nodeLinkSize = {'serv': 150, 'vol': 25, 'net': 200, 'rou': 200}
+var nodeTextOffsetY = {'serv': 30, 'vol': 20}
+var serverStateColor = {"ACTIVE": "#5cb85c", "ERROR": "#f0ad4e", "BUILD": "#428bca"}
+function getNodeCharge(type) { return nodeCharge[type] ? nodeCharge[type] : -800; }
+function getNodeColor(type) { return nodeColor[type] ? nodeColor[type] : "#087000"; }
+function getNodeGravity(type) { return 0.12; }
+function getNodeLinkSize(type) { return nodeLinkSize[type] ? nodeLinkSize[type] : 550; }
+function getNodeTextOffsetY(type) { return nodeTextOffsetY[type] ? nodeTextOffsetY[type] : 40 }
+function getServerStateColor(name) { return serverStateColor[clusterdata["servers"][name]["status"]] ? serverStateColor[clusterdata["servers"][name]["status"]] : "#d9534f" }
 
 /**
  *	Returns the opacity of a node. 100% if selection is empty or it is in selection, else 50% 
@@ -500,7 +384,6 @@ var current_selection = []
  *	@param 	name 	the ID of the element. Used to see if it's in the list
  */
 function getNodeOpacity(name) {
-	//console.log(!current_selection);
 	if (current_selection.length === 0) {	return 1;	}
 	else {
 		if (current_selection.indexOf(name) >= 0) {	return 1;	}
@@ -508,25 +391,7 @@ function getNodeOpacity(name) {
 	}
 }
 
-/**
- *	Returns the size of a link depending on the type of elements it connects
- *
- *	@param 	type 	The element type (server, volume, net etc)
- */
-function getNodeLinkSize(type) {
-	// @TODO Add the ability to collapse a network, which sets the link length to very small and makes instances zoom into and partially hide behind it's network
-	if (type == "serv") { return 150; }
-	else if (type == "vol") { return 25;	}
-	else if (type == "net"){ return 200; }
-	else if (type == "rou"){ return 200; }
-	else { return 550; }
-}
-
-function getNodeTextOffsetY(type) {
-	if (type == "serv") { return 30; }
-	else if (type == "vol") { return 20;	}
-	else { return 40; }
-}
+// @TODO Add the ability to collapse a network, which sets the link length to very small and makes instances zoom into and partially hide behind it's network
 
 /**
  *	Returns the SVG path for an element depending on type
@@ -560,11 +425,6 @@ function getNodeShape(type, name) {
 	else { return nodePaths["undefined"] }
 }
 
-/**
- *	Returns the image name for a particular instance ID
- *	
- *	@param 	id 	the ID of the element.
- */
 function getInstanceImage(id) {
 	var imageid = clusterdata["servers"][id]["image"]["id"];
 	if (clusterdata["images"][imageid] === undefined) {
@@ -572,6 +432,8 @@ function getInstanceImage(id) {
 	}
 	return clusterdata["images"][imageid]["name"];
 }
+
+iconScale = {}
 
 function getIconScale(type, name) {
 	if (type == "serv") { return 1 }
@@ -582,6 +444,12 @@ function getIconScale(type, name) {
 	else { return 1; }
 }
 
+iconOffset = {
+				'vol': {'x': 10, 'y': 7.5 },
+				'netpub': 23,
+				'net': {'x': 21.5, 'y': 22},
+				'rou': '15'
+			}
 function getIconOffset(type, axis, name) {
 	if (type == "vol") { if (axis == "x") {return 10;}	else {return 7.5} }
 	else if (type == "serv") { 
@@ -769,24 +637,6 @@ function updateHeatmapReal(data) {
 }
 
 /**
- *	Load a graph in the top pane.
- */
-function loadTopGraph(){
-	var w = $("body").width() - 2
-	graph = new Rickshaw.Graph( {
-		element: document.querySelector('#graph'),
-		series: [
-			{ color: 'steelblue', data: [ { x: 0, y: 23}, { x: 1, y: 15 }, { x: 2, y: 79 } ]}, 
-			{ color: 'lightblue', data: [ { x: 0, y: 30}, { x: 1, y: 20 }, { x: 2, y: 64 } ]}
-		],
-		height: 100,
-		width: w
-	});
-
-	graph.render();
-}
-
-/**
  * Opens the sidebar locked to the entity data table
  */
 function openSearch() {
@@ -830,31 +680,6 @@ function filter() {
  */
 function addToListPane(id, type ,name) {
   $('#entity-table').dataTable().fnAddData( [id, type ,name] );
-}
-
-/**
- * Converts a date into a sting of the length of time from the current date in the form of "xd yh zm"
- * where x is the number of days, y is the number of hours, and z is the number of minutes.
- *
- * @param  	createdOn	 The date to be used in calculation.
- */
-function calculateUptime(createdOn) {
-	uptimeMili = (new Date().getTime()) - (new Date(createdOn).getTime());
-	uptimeDays = Math.floor(uptimeMili / 60000 / 60 / 24)
-	uptimeHours = Math.floor(uptimeMili/60000/60)-uptimeDays*24;
-	uptimeMins = Math.floor(uptimeMili/60000)-(((uptimeDays*24)+uptimeHours)*60);
-	if (uptimeDays == 0) {
-		if (uptimeHours == 0) {
-			uptimeString = uptimeMins + "m";
-		}
-		else {
-			uptimeString = uptimeHours + "h " + uptimeMins + "m";
-		}
-	}
-	else {
-		uptimeString = uptimeDays + "d " + uptimeHours + "h " + uptimeMins + "m";
-	}	
-	return uptimeString;
 }
 
 /**
@@ -1263,18 +1088,6 @@ function openNetworkPlot() {
 	net_flow_live = true;
 }
 
-function formatSizeUnits(bytes){
-	bytes = bytes / 8
-  if      (bytes>=1073741824) {bytes=(bytes/1073741824).toFixed(2)+' GB';}
-  else if (bytes>=1048576)    {bytes=(bytes/1048576).toFixed(2)+' MB';}
-  else if (bytes>=1024)       {bytes=(bytes/1024).toFixed(2)+' KB';}
-  else if (bytes>1)           {bytes=bytes+' bytes';}
-  else if (bytes==1)          {bytes=bytes+' byte';}
-  else                        {bytes='0 byte';}
-  return bytes;
-}
-
-
 function getInstanceForNetwork() {
 	var s = []
 	for (var i in clusterdata["servers"]) {
@@ -1355,7 +1168,7 @@ function loadInstRightPaneInfoRef(element) {
 	}
 
 	//Volumes
-	var volumes = server["os-extended-volumes:volumes_attached"];
+	var volumes = server['volumes']//server["os-extended-volumes:volumes_attached"];
 	var realVolumes = existingVolumes(volumes);
 	if (realVolumes.length == 0) {
 		content += rightPaneField("Volumes", "None");
@@ -1363,25 +1176,26 @@ function loadInstRightPaneInfoRef(element) {
 	else {
 		content += "<table class='table table-hover'><thead><tr><th>Volume Name</th><th>Size (GB)</th></tr></thead>"
 		for (var i = 0; i < realVolumes.length; i++) {
-			volid = realVolumes[i]["id"];
+			// console.log()
+			volid = realVolumes[i];
 			content += "<tr><td><a href='javascript:loadVolRightPaneInfo(\"" + volid + "\")'>" + clusterdata["volumes"][volid]["name"] + "</a></td><td>" +  clusterdata["volumes"][volid]["size"] + "</td></tr>";
 		}
 		content += "</tbody></table>"
 	}
 
 	//Security groups
-	var securitygroups = server["security_groups"];
-	if (securitygroups.length == 0) {
-		content += rightPaneField("Security Groups", "None");
-	}
-	else {
-		content += "<table class='table table-hover'><thead><tr><th>Security Group Name</th></tr>"//<th>Type</th></tr></thead>"
-		for (var i = 0; i < securitygroups.length; i++) {
-			secid = securitygroups[i]["name"];
-			content += "<tr><td>" + secid + "</td></tr>";
-		}
-		content += "</tbody></table>"
-	}
+	// var securitygroups = server["security_groups"];
+	// if (securitygroups.length == 0) {
+	// 	content += rightPaneField("Security Groups", "None");
+	// }
+	// else {
+	// 	content += "<table class='table table-hover'><thead><tr><th>Security Group Name</th></tr>"//<th>Type</th></tr></thead>"
+	// 	for (var i = 0; i < securitygroups.length; i++) {
+	// 		secid = securitygroups[i]["name"];
+	// 		content += "<tr><td>" + secid + "</td></tr>";
+	// 	}
+	// 	content += "</tbody></table>"
+	// }
 
 	content += rightPaneField("CPU Util", " 70%");
 	content += "<div id=\"CPUGraphRight\"></div>";
@@ -1403,114 +1217,6 @@ function loadInstRightPaneInfoRef(element) {
 		'html': true
 	});
 
-}
-
-/**
- * Checks that each volume in a list of volumes exists.
- * Returns a list of the volumes that do exist.
- *
- * @param volumes	An array of volume IDs to be checked.
- */
-function existingVolumes(volumes) {
-	var realVolumes = [];
-	volumes.forEach(function(entry) {
-		if (clusterdata["volumes"][entry] != undefined) {
-			realVolumes.push(x);
-		}
-	});
-	return realVolumes;
-}
-
-/**
- * Returns a string containing the HTML for the heading in the east pane.
- *
- * @param title	The title of the element being shown in the right pane
- */
-function rightPaneTitle(title) {
-	return "<h3 id='right-instance-title'>" + title + "</h3>";
-}
-
-/**
- * Returns a string containing the HTML to create the status label in the east pane.
- *
- * @param status	The status of the element being shown in the right pane
- */
-function rightPaneStatus(status) {
-	if (status == "ACTIVE") {	return "<h4><span class='label label-success'>" + status + "</span></h4>"; }
-	else if (status == "IN-USE") {	return "<h4><span class='label label-success'>" + status + "</span></h4>"; }
-	else if (status == "AVAILABLE") {	return "<h4><span class='label label-info'>" + status + "</span></h4>"; }
-	else if (status == "SHUTOFF") {return "<h4><span class='label label-danger'>" + status + "</span></h4>";	}
-	else if (status == "BUILD") {return "<h4><span class='label label-default'>" + status + "</span></h4>";}
-	else { return "<h4><span class='label label-warning'>" + status + "</span></h4>";	}
-}
-
-/**
- * Returns a string containing the HTML for a field in the east pane.
- *
- * @param field	The description for the value being shown
- * @param value The value being added to the east pane
- */
-function rightPaneField(field, value) {
-	return "<p><b> " + field + ": </b>" + value + "</p>";
-}
-
-/**
- * Returns a string containing the HTML for a field in the east pane.
- *
- * @param field	The description for the value being shown
- * @param value The value being added to the east pane
- * @param link	The action to be performed when the value is clicked on
- */
-function rightPaneFieldWithLink(field, value, link) {
-	return "<p><b>" + field + ": </b><a href=\"" + link + "\" >" + value + "</a></p>";
-}
-
-/**
- * Returns a string containing the HTML for a field in the east pane.
- *
- * @param field				The description for the value being shown
- * @param value 			The value being added to the east pane
- * @param tooltipContent	The HTML of the content to be displayed in the tooltip when the value is hovered over
- */
-function rightPaneFieldWithTooltip(field, value, tooltipContent) {
-	return "<p><b>" + field + ": </b><a href=\"#\" data-toggle=\"tooltip\" title=\"" + tooltipContent + "\">" + value + "</a></p>";
-}
-
-/**
- * Creates the graphs to be shown in the right pane when an instance is selected
- */
-function updateRightPaneInstanceGraphs() {
-	gData = [ { x: 0, y: 23}, { x: 1, y: 15 }, { x: 2, y: 79 }, { x: 3, y: 23}, { x: 4, y: 96 }, { x: 5, y: 79 }, { x: 6, y: 88}, { x: 7, y: 93 }, { x: 8, y: 69 }, { x: 9, y: 80}, { x: 10, y: 30 }, { x: 11, y: 4 }, { x: 12, y: 5}, { x: 13, y: 4 }, { x: 14, y: 4 }];
-	createGraph(gData, '#CPUGraphRight');
-
-	gData = [ { x: 0, y: 23}, { x: 1, y: 15 }, { x: 2, y: 79 }, { x: 3, y: 50}, { x: 4, y: 51 }, { x: 5, y: 79 }, { x: 6, y: 80}, { x: 7, y: 85 }, { x: 8, y: 78 }, { x: 9, y: 93}, { x: 10, y: 80 }, { x: 11, y: 79 }, { x: 12, y: 23}, { x: 13, y: 15 }, { x: 14, y: 79 }];
-	createGraph(gData, '#NetworkGraphRight');
-
-	gData = [ { x: 0, y: 23}, { x: 1, y: 24 }, { x: 2, y: 15 }, { x: 3, y: 20}, { x: 4, y: 22 }, { x: 5, y: 24 }, { x: 6, y: 25}, { x: 7, y: 25 }, { x: 8, y: 26 }, { x: 9, y: 29}, { x: 10, y: 30 }, { x: 11, y: 32 }, { x: 12, y: 32}, { x: 13, y: 32 }, { x: 14, y: 32 }];
-	createGraph(gData, '#DiskGraphRight');
-}
-
-
-/**
- * Creates a graph from the given data and adds it to the location specified
- *
- * @param graphData	The data used to create the graph
- * @param selector	The location that the graph will be added to
- */
-function createGraph(graphData, selector) {
-		graph = new Rickshaw.Graph( {
-		element: document.querySelector(selector),
-		series: [
-			{ color: 'steelblue', data: graphData}
-		],
-		height: 50,
-	});
-	var hoverDetail = new Rickshaw.Graph.HoverDetail( {
-		graph: graph,
-		xFormatter: function(x) { return x + "seconds" },
-		yFormatter: function(y) { return Math.floor(y) + " percent" }
-	} );
-	graph.render();
 }
 
 /**
@@ -1657,8 +1363,8 @@ function loadRouRightPaneInfo(id) {
 	}
 	content += "<table class='table table-hover'><thead><tr><th>Network Name</th></tr>"//<th>Type</th></tr></thead>"
 	for (var i = 0; i < networksOnRouter.length; i++) {
-		if (clusterdata["networks"][networksOnRouter[i]] != undefined) {
-			content += "<tr><td><a href='javascript:loadNetRightPaneInfo(\"" + networksOnRouter[i] + "\")'>" + clusterdata["networks"][networksOnRouter[i]]["label"] + "</a></td></tr>";
+		if (clusterdata["neutronnetwork"][networksOnRouter[i]] != undefined) {
+			content += "<tr><td><a href='javascript:loadNetRightPaneInfo(\"" + networksOnRouter[i] + "\")'>" + clusterdata["neutronnetwork"][networksOnRouter[i]]["name"] + "</a></td></tr>";
 		}
 	}
 	content += "</tbody></table>"
@@ -1669,19 +1375,146 @@ function loadRouRightPaneInfo(id) {
 }
 
 /**
- *	Console.log cannot be used as a callback, so we use this function instead.
+ * Checks that each volume in a list of volumes exists.
+ * Returns a list of the volumes that do exist.
  *
- *	@param str		String to print
+ * @param volumes	An array of volume IDs to be checked.
  */
-function print(str) {
-	console.log(JSON.parse(str));
+function existingVolumes(volumes) {
+	var realVolumes = [];
+	console.log(volumes);
+	volumes.forEach(function(entry) {
+		console.log(entry);
+		if (clusterdata["volumes"][entry] != undefined) {
+			realVolumes.push(entry);
+		}
+	});
+	return realVolumes;
 }
 
 /**
- *	Prints the data set for whatever calls it
+ * Returns a string containing the HTML for the heading in the east pane.
+ *
+ * @param title	The title of the element being shown in the right pane
  */
-function printthis() {
-	console.log(this);
+function rightPaneTitle(title) {
+	return "<h3 id='right-instance-title'>" + title + "</h3>";
+}
+
+/**
+ * Returns a string containing the HTML to create the status label in the east pane.
+ *
+ * @param status	The status of the element being shown in the right pane
+ */
+function rightPaneStatus(status) {
+	if (status == "ACTIVE") {	return "<h4><span class='label label-success'>" + status + "</span></h4>"; }
+	else if (status == "IN-USE") {	return "<h4><span class='label label-success'>" + status + "</span></h4>"; }
+	else if (status == "AVAILABLE") {	return "<h4><span class='label label-info'>" + status + "</span></h4>"; }
+	else if (status == "SHUTOFF") {return "<h4><span class='label label-danger'>" + status + "</span></h4>";	}
+	else if (status == "BUILD") {return "<h4><span class='label label-default'>" + status + "</span></h4>";}
+	else { return "<h4><span class='label label-warning'>" + status + "</span></h4>";	}
+}
+
+/**
+ * Returns a string containing the HTML for a field in the east pane.
+ *
+ * @param field	The description for the value being shown
+ * @param value The value being added to the east pane
+ */
+function rightPaneField(field, value) {
+	return "<p><b> " + field + ": </b>" + value + "</p>";
+}
+
+/**
+ * Returns a string containing the HTML for a field in the east pane.
+ *
+ * @param field	The description for the value being shown
+ * @param value The value being added to the east pane
+ * @param link	The action to be performed when the value is clicked on
+ */
+function rightPaneFieldWithLink(field, value, link) {
+	return "<p><b>" + field + ": </b><a href=\"" + link + "\" >" + value + "</a></p>";
+}
+
+/**
+ * Returns a string containing the HTML for a field in the east pane.
+ *
+ * @param field				The description for the value being shown
+ * @param value 			The value being added to the east pane
+ * @param tooltipContent	The HTML of the content to be displayed in the tooltip when the value is hovered over
+ */
+function rightPaneFieldWithTooltip(field, value, tooltipContent) {
+	return "<p><b>" + field + ": </b><a href=\"#\" data-toggle=\"tooltip\" title=\"" + tooltipContent + "\">" + value + "</a></p>";
+}
+
+/**
+ * Creates the graphs to be shown in the right pane when an instance is selected
+ */
+function updateRightPaneInstanceGraphs() {
+	gData = [ { x: 0, y: 23}, { x: 1, y: 15 }, { x: 2, y: 79 }, { x: 3, y: 23}, { x: 4, y: 96 }, { x: 5, y: 79 }, { x: 6, y: 88}, { x: 7, y: 93 }, { x: 8, y: 69 }, { x: 9, y: 80}, { x: 10, y: 30 }, { x: 11, y: 4 }, { x: 12, y: 5}, { x: 13, y: 4 }, { x: 14, y: 4 }];
+	createGraph(gData, '#CPUGraphRight');
+
+	gData = [ { x: 0, y: 23}, { x: 1, y: 15 }, { x: 2, y: 79 }, { x: 3, y: 50}, { x: 4, y: 51 }, { x: 5, y: 79 }, { x: 6, y: 80}, { x: 7, y: 85 }, { x: 8, y: 78 }, { x: 9, y: 93}, { x: 10, y: 80 }, { x: 11, y: 79 }, { x: 12, y: 23}, { x: 13, y: 15 }, { x: 14, y: 79 }];
+	createGraph(gData, '#NetworkGraphRight');
+
+	gData = [ { x: 0, y: 23}, { x: 1, y: 24 }, { x: 2, y: 15 }, { x: 3, y: 20}, { x: 4, y: 22 }, { x: 5, y: 24 }, { x: 6, y: 25}, { x: 7, y: 25 }, { x: 8, y: 26 }, { x: 9, y: 29}, { x: 10, y: 30 }, { x: 11, y: 32 }, { x: 12, y: 32}, { x: 13, y: 32 }, { x: 14, y: 32 }];
+	createGraph(gData, '#DiskGraphRight');
+}
+
+/**
+ *	Load a graph in the top pane.
+ */
+function loadTopGraph(){
+	var w = $("body").width() - 2
+	graph = new Rickshaw.Graph( {
+		element: document.querySelector('#graph'),
+		series: [
+			{ color: 'steelblue', data: [ { x: 0, y: 23}, { x: 1, y: 15 }, { x: 2, y: 79 } ]}, 
+			{ color: 'lightblue', data: [ { x: 0, y: 30}, { x: 1, y: 20 }, { x: 2, y: 64 } ]}
+		],
+		height: 100,
+		width: w
+	});
+
+	graph.render();
+}
+
+/**
+ * Creates a graph from the given data and adds it to the location specified
+ *
+ * @param graphData	The data used to create the graph
+ * @param selector	The location that the graph will be added to
+ */
+function createGraph(graphData, selector) {
+		graph = new Rickshaw.Graph( {
+		element: document.querySelector(selector),
+		series: [
+			{ color: 'steelblue', data: graphData}
+		],
+		height: 50,
+	});
+	var hoverDetail = new Rickshaw.Graph.HoverDetail( {
+		graph: graph,
+		xFormatter: function(x) { return x + "seconds" },
+		yFormatter: function(y) { return Math.floor(y) + " percent" }
+	} );
+	graph.render();
+}
+
+/**
+ * Toggles the Node Labels
+ */
+function toggleLabels() {
+	labelVisible = !labelVisible;
+	$('.label').attr('class', labelVisible ? 'label' : 'label hidden');
+}
+
+/**
+ * Turns the heatmap on and off
+ */
+function toggleHeatmap() {
+	plot_heatmap = !plot_heatmap;
+	updateHeatmapReal();
 }
 
 function loadPaneLayout() {
@@ -1737,11 +1570,9 @@ function loadPaneLayout() {
 
 	// if there is no state-cookie, then DISABLE state management initially
 	var cookieExists = !$.isEmptyObject( myLayout.readCookie() );
-	if (!cookieExists) toggleStateManagement( true, false );
-
+	if (!cookieExists) { toggleStateManagement( true, false );}
 	// 'Reset State' button requires updated functionality in rc29.15+
-	if ($.layout.revision && $.layout.revision >= 0.032915)
-		$('#btnReset').show();
+	if ($.layout.revision && $.layout.revision >= 0.032915) { $('#btnReset').show(); }
 }
 
 /**
@@ -1775,29 +1606,6 @@ function toggleStateManagement ( skipAlert, mode ) {
 	else if (!skipAlert)
 		alert( 'This layout will save & restore its last state \nwhen the page is refreshed.' );
 }
-
-var labelVisible = false;
-
-function toggleLabels() {
-	if (labelVisible == true) {
-		$('.label').attr('class', 'label hidden');
-		labelVisible = false;
-	} else {
-		$('.label').attr('class', 'label');
-		labelVisible = true;
-	}
-}
-
-function toggleHeatmap() {
-	if (plot_heatmap == false) {
-		plot_heatmap = true;
-		updateHeatmapReal();
-	} else {
-		plot_heatmap = false;
-		updateHeatmapReal();
-	}
-}
-
 
 /**
  *	showOptions
@@ -1836,90 +1644,6 @@ function showState (Layout, key, debugOpts) {
 		data = data[this]; // recurse through multiple key-levels
 	});
 	debugData( data, 'state.'+key, debugOpts );
-}
-
-/**
- * Create a network of components randomly for testing
- * @param  {[int]} size [The approximate size of the cluster to create (in VMs)]
- */
-function createRandomCluster(size) {
-
-	var pubnetwork_id = inventResourceID();
-	var pubnetwork_name = "publicnetwork-" + pubnetwork_id;
-	clusterdata["neutronnetwork"][pubnetwork_id] = {"admin_state_up": true, "id": pubnetwork_id, "name": pubnetwork_name, "router:external": true, "shared": false, "status": "ACTIVE", "subnets": ["12345"], "tenant_id": "72cdf4b772444f55bdbf7b050021f628" };
-	addNetworkToDash(pubnetwork_id);
-
-	var image_ids = Object.keys(clusterdata["images"])
-	var first = true;
-	// Create a public network
-	while (size > 0) {
-
-
-		var network_id = inventResourceID();
-		//console.log(network_id)
-		var network_name = "network-" + network_id;
-		clusterdata["neutronnetwork"][network_id] = {"admin_state_up": true, "id": network_id, "name": network_name, "router:external": false, "shared": false, "status": "ACTIVE", "subnets": ["12345"], "tenant_id": "72cdf4b772444f55bdbf7b050021f628" };
-		addNetworkToDash(network_id);
-
-		if (Math.random() > 0.5 || first == true) {
-			router_id = inventResourceID();
-			var router_name = "router-" + router_id;
-			clusterdata["routers"][router_id] = {"status":"ACTIVE","external_gateway_info":{"network_id": pubnetwork_id,"enable_snat":true},"name": router_name,"admin_state_up":true,"tenant_id":"72cdf4b772444f55bdbf7b050021f628","routes":[],"id": router_id}
-			var pubport_id = inventResourceID();
-			clusterdata["ports"][pubport_id] = {"status":"ACTIVE","name":"","allowed_address_pairs":[],"admin_state_up":true,"network_id":pubnetwork_id,"tenant_id":"72cdf4b772444f55bdbf7b050021f628","extra_dhcp_opts":[],"device_owner":"network:router_interface","mac_address":"fa:16:3e:e1:e2:37","fixed_ips":[{"subnet_id":"a43db26b-925f-4ff9-a3be-9ce1a95ef191","ip_address":"192.168.20.1"}],"id":pubport_id,"security_groups":["2d615edb-266e-40ac-b7ea-e5436915b25c"],"device_id": router_id};
-			addRouterToDash(router_id)
-			first = false;
-		}
-
-		port_id = inventResourceID();
-		clusterdata["ports"]["port_id"] = {"status":"ACTIVE","name":"","allowed_address_pairs":[],"admin_state_up":true,"network_id":network_id,"tenant_id":"72cdf4b772444f55bdbf7b050021f628","extra_dhcp_opts":[],"device_owner":"network:router_interface","mac_address":"fa:16:3e:e1:e2:37","fixed_ips":[{"subnet_id":"a43db26b-925f-4ff9-a3be-9ce1a95ef191","ip_address":"192.168.20.1"}],"id":port_id,"security_groups":["2d615edb-266e-40ac-b7ea-e5436915b25c"],"device_id": router_id};
-
-		addLinkToForceGraph(router_id, network_id);
-
-
-		var image = image_ids[Math.floor(Math.random() * image_ids.length)];
-		for (var i = Math.random() * 12 + 3; i > 0; i --) {
-			var instance_id = inventResourceID();
-			var instance_name = "inst" + generateRandomString();
-			clusterdata["servers"][instance_id] = {"OS-EXT-STS:task_state":null,"addresses":{},"links":[{"href":"http://us-texas-1.cisco.com:8774/v2/72cdf4b772444f55bdbf7b050021f628/servers/1e3c47f1-7275-4af4-b362-e527171f6b84","rel":"self"},{"href":"http://us-texas-1.cisco.com:8774/72cdf4b772444f55bdbf7b050021f628/servers/1e3c47f1-7275-4af4-b362-e527171f6b84","rel":"bookmark"}],"image":{"id":image,"links":[{"href":"http://us-texas-1.cisco.com:8774/72cdf4b772444f55bdbf7b050021f628/images/4ceaf1e6-69bb-49ad-8f15-a30f3dc4004b","rel":"bookmark"}]},"OS-EXT-STS:vm_state":"active","OS-SRV-USG:launched_at":"2014-05-16T18:57:07.000000","flavor":{"id":1,"links":[{"href":"http://us-texas-1.cisco.com:8774/72cdf4b772444f55bdbf7b050021f628/flavors/b4839a95-fed5-4198-bfd1-0d4105044e69","rel":"bookmark"}]},"id":instance_id,"security_groups":[{"name":"default"},{"name":"elasticsearch"}],"user_id":"d7776f89e40942bb9ec675cb9e26e52f","OS-DCF:diskConfig":"MANUAL","accessIPv4":"","accessIPv6":"","progress":0,"OS-EXT-STS:power_state":1,"OS-EXT-AZ:availability_zone":"alln01-1-csx","config_drive":"","status":"ACTIVE","updated":"2014-05-16T18:57:07Z","hostId":"a68025b956ba8e07af877f6c49443d304d2ee959aaafa7e3d55fb2d3","OS-SRV-USG:terminated_at":null,"key_name":"throwaway","name": instance_name,"created":"2014-05-16T18:56:59Z","tenant_id":"72cdf4b772444f55bdbf7b050021f628","os-extended-volumes:volumes_attached":[{"id":"83b95885-8798-4ee1-9e6c-d3291a889428"}],"metadata":{}}
-			clusterdata["servers"][instance_id]["addresses"][network_name] = [{"OS-EXT-IPS-MAC:mac_addr":"fa:16:3e:68:d6:35","version":4,"addr":"192.168.20.19","OS-EXT-IPS:type":"fixed"}];
-			addServerToDash(instance_id)
-			size --;
-			if (Math.random() > 0.3) {
-				for (var j = Math.random() * 5; j > 1; j--) {
-					var volume_id = inventResourceID();
-					var volume_name = "vol-" + volume_id;
-					clusterdata["volumes"][volume_id] = {"status":"in-use","name":volume_name,"display_name": volume_name,"attachments":[{"device":"vda","server_id":instance_id,"volume_id":volume_id,"host_name":null,"id": volume_id}],"availability_zone":"nova","bootable":"true","created_at":"2014-05-16T18:47:04.000000","display_description":null,"volume_type":"None","snapshot_id":null,"source_volid":null,"size":50,"id": volume_id,"metadata":{"readonly":"False","attached_mode":"rw"}}
-					addVolumeToDash(volume_id);
-				}
-			}
-			
-		}
-	}
-}
-
-function addDummyImages() {
-
-	var list = ["ubuntu", "redhat", "suse", "linux", "wordpress", "windows", "centos", "fedora", "debian", "hadoop", "magento", "drupal", "android", "noideawhatthisimageis"]
-
-	for (var i in list) {
-		var image_id = inventResourceID();
-		clusterdata["images"][image_id] = getStructure(image_id, list[i]);
-	}
-
-	function getStructure(id, name) {
-		return {"status":"ACTIVE","updated":"2014-05-02T21:39:06Z","name":name,"links":[{"href":"http://us-texas-1.cisco.com:8774/v2/72cdf4b772444f55bdbf7b050021f628/images/4ceaf1e6-69bb-49ad-8f15-a30f3dc4004b","rel":"self"},{"href":"http://us-texas-1.cisco.com:8774/72cdf4b772444f55bdbf7b050021f628/images/4ceaf1e6-69bb-49ad-8f15-a30f3dc4004b","rel":"bookmark"},{"href":"http://10.202.4.8:9292/72cdf4b772444f55bdbf7b050021f628/images/4ceaf1e6-69bb-49ad-8f15-a30f3dc4004b","type":"application/vnd.openstack.image","rel":"alternate"}],"created":"2014-05-02T21:25:48Z","minDisk":0,"progress":100,"minRam":0,"metadata":{},"id":id,"OS-EXT-IMG-SIZE:size":1033895936}
-	}
-}
-
-/**
- * Simple function to create a random cluster, for testing
- * @param  {[int]} size [The number of instances to create (roughly)]
- */
-function developerMode(size) {
-	//plot_heatmap = false;
-	addDummyImages();
-	createRandomCluster(size);
 }
 
 // set EVERY 'state' here so will undo ALL layout changes

@@ -237,7 +237,9 @@ class IndexView(views.APIView):
         data = [{
                 'id': volume.id,
                 'name': volume.name,
-                'attachments': volume.attachments
+                'attachments': volume.attachments,
+                'size': volume.size,
+                'status': volume.status
         } for volume in volumes]
         return data
 
