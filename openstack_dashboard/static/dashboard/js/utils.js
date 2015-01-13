@@ -121,11 +121,9 @@ function inventResourceID() {
 
 function addDummyImages() {
 
-	var list = ["ubuntu", "redhat", "suse", "linux", "wordpress", "windows", "centos", "fedora", "debian", "hadoop", "magento", "drupal", "android", "noideawhatthisimageis"]
-
-	for (var i in list) {
+	for (var i in imageList) {
 		var image_id = inventResourceID();
-		clusterdata["images"][image_id] = getStructure(image_id, list[i]);
+		clusterdata["images"][image_id] = getStructure(image_id, imageList[i]);
 	}
 
 	function getStructure(id, name) {

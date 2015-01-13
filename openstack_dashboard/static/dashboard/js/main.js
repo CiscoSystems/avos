@@ -393,6 +393,21 @@ function getNodeOpacity(name) {
 
 // @TODO Add the ability to collapse a network, which sets the link length to very small and makes instances zoom into and partially hide behind it's network
 
+var nodeShapes = {'vol': 'volume', 'net': 'network', 'netpub': 'publicnetwork', 'rou': 'router'};
+var imageList = ["ubuntu", "redhat", "suse", "linux", "wordpress", "windows", "centos", "fedora", "debian", "hadoop", "magento", "drupal", "android", "noideawhatthisimageis"];
+var imageLookup = {}
+
+for (var i in imageList) {
+	imageLookup[imageList[i]] = []
+}
+
+imageLookup['linux'].push('unix');
+imageLookup['linux'].push('cirros');
+imageLookup['redhat'].push('rhel');
+imageLookup['hadoop'].push('savanna');
+imageLookup['hadoop'].push('sahara');
+
+
 /**
  *	Returns the SVG path for an element depending on type
  *
@@ -402,27 +417,20 @@ function getNodeOpacity(name) {
 function getNodeShape(type, name) {
 	if (type == "serv") { 
 		var imagename = getInstanceImage(name).toLowerCase();
-		//console.log(imagename)
-		if (imagename.indexOf("ubuntu") != -1) { return nodePaths["ubuntu"]; }
-		else if (imagename.indexOf("windows") != -1) { return nodePaths["windows"]; }
-		else if (imagename.indexOf("linux") != -1 ||  imagename.indexOf("cirros") != -1 || imagename.indexOf("unix") != -1) { return nodePaths["linux"]; }
-		else if (imagename.indexOf("redhat") != -1 || imagename.indexOf("rhel") != -1) { return nodePaths["redhat"]; }
-		else if (imagename.indexOf("centos") != -1) { return nodePaths["centos"]; }
-		else if (imagename.indexOf("fedora") != -1) { return nodePaths["fedora"]; }
-		else if (imagename.indexOf("debian") != -1) { return nodePaths["debian"]; }
-		else if (imagename.indexOf("suse") != -1) { return nodePaths["suse"]; }
-		else if (imagename.indexOf("android") != -1) { return nodePaths["android"]; }
-		else if (imagename.indexOf("hadoop") != -1 ||  imagename.indexOf("savanna") != -1 ||  imagename.indexOf("sahara") != -1 ) { return nodePaths["hadoop"]; }
-		else if (imagename.indexOf("wordpress") != -1) { return nodePaths["wordpress"]; }
-		else if (imagename.indexOf("magento") != -1) { return nodePaths["magento"]; }
-		else if (imagename.indexOf("drupal") != -1) { return nodePaths["drupal"]; }
-		else { return nodePaths["port"]; }
+		for (var i in imageList) {
+			if (imagename.indexOf(imageList[i]) != -1 && nodePaths[imageList[i]]) {
+				return nodePaths[imageList[i]];
+			} else if (imageLookup[imageList[i]].length > 0) {
+				for (var j in imageLookup[imageList[i]]) {
+					if (imagename.indexOf(imageLookup[imageList[i]][j]) != -1 && nodePaths[imageList[i]]) {
+						return nodePaths[imageList[i]];
+					}
+				}
+			}
+		}
+		return nodePaths['port'];
 	}
-	else if (type == "vol") { return nodePaths["volume"]; }
-	else if (type == "net"){ return  nodePaths["network"]; }
-	else if (type == "netpub") {return nodePaths["publicnetwork"]}
-	else if (type == "rou"){ return  nodePaths["router"] }
-	else { return nodePaths["undefined"] }
+	else { return nodePaths[nodeShapes[type]] ? nodePaths[nodeShapes[type]] : nodePaths['undefined'] }
 }
 
 function getInstanceImage(id) {
