@@ -1414,13 +1414,9 @@ function rightPaneTitle(title) {
  *
  * @param status	The status of the element being shown in the right pane
  */
+var paneStates = {'ACTIVE': 'success', 'IN-USE': 'success', 'AVAILABLE': 'info', 'SHUTOFF': 'danger', 'BUILD': 'default'}
 function rightPaneStatus(status) {
-	if (status == "ACTIVE") {	return "<h4><span class='label label-success'>" + status + "</span></h4>"; }
-	else if (status == "IN-USE") {	return "<h4><span class='label label-success'>" + status + "</span></h4>"; }
-	else if (status == "AVAILABLE") {	return "<h4><span class='label label-info'>" + status + "</span></h4>"; }
-	else if (status == "SHUTOFF") {return "<h4><span class='label label-danger'>" + status + "</span></h4>";	}
-	else if (status == "BUILD") {return "<h4><span class='label label-default'>" + status + "</span></h4>";}
-	else { return "<h4><span class='label label-warning'>" + status + "</span></h4>";	}
+	return paneStates[status] ? "<h4><span class='label label-" + paneStates[status] + "'>" + status + "</span></h4>" : "<h4><span class='label label-warning'>" + status + "</span></h4>";
 }
 
 /**
