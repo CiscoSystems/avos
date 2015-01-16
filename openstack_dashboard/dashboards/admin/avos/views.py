@@ -391,7 +391,7 @@ class IndexView(views.APIView):
                     'keypairs': self._get_keypairs(request),
                     'meters': self._get_meters(request),
                     #'networks': self._get_networks(request),
-                    'neutronnetwork': self._get_networks(request),
+                    'networks': self._get_networks(request),
                     'ports': self._get_ports(request),
                     'routers': self._get_routers(request),
                     # 'security_groups': self._get_security_groups(request),

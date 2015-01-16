@@ -6,33 +6,6 @@
  *
  */
 
-$(document).ready(function() {
-	loadPaneLayout();
-	loadNewForceGraph();
-	setButtonStates();
-	//loadTopGraph();
-	loadListPane();
-	getOpenStackData(loadInitialServers, "avosstartup");
-
-	document.body.onmousedown = function() { mouseDown = 1;	}
-	document.body.onmouseup = function() { mouseDown = 0; }
-
-	if (d3.event) {
-		// prevent browser's default behavior
-		d3.event.preventDefault();
-	}
-
-	$(window).resize(function () {
-		waitForFinalEvent(function(){
-			var w = $('#pane-center').width();
-			var h = $('#pane-center').height();
-			svg.attr("width", w).attr("height", h);
-			$("#pane-center canvas").attr("width", w).attr("height", h);
-		}, 500);
-	});
-
-});
-
 var myLayout;
 
 // Debugging Vars
@@ -47,21 +20,429 @@ var plot_heatmap = true;
 var get_cpu_util = true
 var net_flow_live = false
 
-// var hz = angular.module('hz');
+hz = angular.module('hz');
 
-// hz.controller("buttonCtrl", function($scope){
-// 	$scope.leftbuttons = [
-// 		{'id':'labels', 'title': 'Labels', 'function': function() {alert("hello")}, 'icon': 'font'},
-// 		{'id':'heat', 'title': 'Toggle Heatmap', 'function': "Hello", 'icon': 'fire'},
-// 		{'id':'list', 'title': 'Toggle List', 'function': "Hello", 'icon': 'list'},
-// 		{'id':'graph', 'title': 'Toggle Graph', 'function': "Hello", 'icon': 'stats'},
-// 		{'id':'hdd', 'title': 'Toggle Volumes', 'function': "Hello", 'icon': 'hdd'},
-// 		{'id':'ntwk', 'title': 'Toggle Networks', 'function': "Hello", 'icon': 'globe'},
-// 		{'id':'alert', 'title': 'Toggle Alerts', 'function': "Hello", 'icon': 'bell'},
-// 		{'id':'edit', 'title': 'Edit Mode', 'function': "Hello", 'icon': 'edit'}
-// 	];
+hz.config(function($interpolateProvider) {
+	$interpolateProvider.startSymbol('{[{');
+	$interpolateProvider.endSymbol('}]}');
+});
 
-// });
+avos = hz.controller("avosCtrl", function($scope, $http, $document, $filter){
+
+	$scope.buttons = [
+		{'id':'labels', 'title': 'Toggle Labels', 'funct': function() { toggleLabels() }, 'icon': 'font', 'side': 'right'},
+		{'id':'heat', 'title': 'Toggle Heatmap', 'funct': function() { toggleHeatmap() }, 'icon': 'fire', 'state': plot_heatmap, 'side': 'right'},
+		{'id':'list', 'title': 'Toggle List', 'funct': function() { toggleList() }, 'icon': 'list', 'side': 'right'},
+		{'id':'graph', 'title': 'Toggle Graph', 'funct': function() { toggleGraph() }, 'icon': 'stats', 'side': 'right'},
+		{'id':'hdd', 'title': 'Toggle Volumes', 'funct': function() { toggleVolumes() }, 'icon': 'hdd', 'side': 'right'},
+		{'id':'ntwk', 'title': 'Toggle Networks', 'funct': function() { toggleNetworks() }, 'icon': 'globe', 'side': 'right'},
+		{'id':'alert', 'title': 'Toggle Alerts', 'funct': function() { toggleAlerts() }, 'icon': 'bell', 'side': 'right'},
+		{'id':'edit', 'title': 'Edit Mode', 'funct': function() { toggleEdit() }, 'icon': 'edit', 'side': 'right'},
+		{'id':'zoomr', 'title': 'Reset View', 'funct': function() { resetZoom() }, 'icon': 'cloud', 'side': 'left'},
+		{'id':'legend', 'title': 'Help', 'funct': function() { $scope.getOpenStackData(null, "avosstartup") }, 'icon': 'question-sign', 'side': 'left'},
+		{'id':'settings', 'title': 'Settings', 'funct': function() { loadSettings() }, 'icon': 'wrench', 'side': 'left'}
+	];
+
+	$scope.entityTypes = {};
+
+	$scope.paths = { 'network': nodePaths['network']}
+
+	$scope.search = false;
+
+	$scope.toggleSearch = function(state) {
+		// console.log(state)
+		$scope.search = state;
+		if (!state) {
+			$(':focus').blur()
+		}
+		
+	}
+
+	// $scope.searchText = ''
+
+	$scope.clusterdata = {'nodes': [], 'edges': []}
+	$scope.predicate = 'name';
+
+	$scope.getOpenStackData = function(callback, param) {
+		$http.get(window.location + "?" + param + "=true")
+			.success(function(data, status, headers, config) {	callback(data); })
+			.error(function(data, status, headers, config) { console.log('error') });
+	}
+
+		/**
+	 *	Loads a new force graph in the center pane.
+	 */
+	function loadNewForceGraph() {
+
+		var w = $('#pane-center').width();
+		var h = $('#pane-center').height();
+
+		//forceGraphData = {	nodes: [/*{ name: "globalendpoint", type: "endpoint", size: 26 }*/], edges: [ /*{ source: 0, target: 1 }*/ ] };
+
+		force = d3.layout.force()
+							 .nodes($scope.clusterdata.nodes)
+							 .links($scope.clusterdata.edges)
+							 .size([w, h])
+							 .linkDistance(function(d){return getNodeLinkSize(d.source.type)})
+							 //.linkStrength(.5)
+							 .gravity(0.12)//(function(d) { return getNodeGravity(d.type) })
+							 //.friction(.5)
+							 .charge(function(d) { return getNodeCharge(d.type) });
+
+		svg = d3.select("#pane-center").append("svg").attr("width", w).attr("height", h)
+							.call(zoom = d3.behavior.zoom().scaleExtent([0.2, 5])
+								.on("zoom", redraw))
+								.on("dblclick.zoom", null)
+								.on("contextmenu.zoom", null);
+
+		innervis = svg.append("svg:g").append("svg:g");
+
+		innervis.append("g").attr("class", "links");
+		innervis.append("g").attr("class", "nodes");
+
+		edges = svg.select(".links").selectAll("line");
+		nodes = svg.select(".nodes").selectAll("circle");	
+
+		//Every time the simulation "ticks", this will be called
+		force.on("tick", function() {
+			edges.attr("x1", function(d) { return d.source.x; })
+				 .attr("y1", function(d) { return d.source.y; })
+				 .attr("x2", function(d) { return d.target.x; })
+				 .attr("y2", function(d) { return d.target.y; });
+
+			// @TODO: Below is a very silly way to do this, couldn't think of another for now.
+			nodes.attr("transform", function(d) { return "translate(" + (d.x - getIconOffset(d.class, "x", d.name)) + "," + (d.y - getIconOffset(d.class, "y", d.name)) + "), scale(" + getIconScale(d.type, d.name) + ")"; })
+					.attr("child", function(d) { $("#circle" + d.name).attr("transform", "translate(" + d.x + "," + d.y + ")"); return "updated"; })
+					.attr("text", function(d) { $("#label-" + d.name).attr("transform", "translate(" + d.x + "," + (d.y + getNodeTextOffsetY(d.type)) + ")"); return "updated"; });
+
+		});
+	}
+
+	/**
+	 *	Loads an internal array of instances (servers) and other OpenStack data
+	 *
+	 *	@param data		Array of servers to load
+	 */
+	$scope.loadInitialServers = function(data) {
+		clusterdata = data;
+		console.log(clusterdata)
+		
+		clusterdata["lookup"] = {}
+		clusterdata["flavors"] = cleanArrayItems(clusterdata["flavors"]);
+		clusterdata["servers"] = cleanArrayItems(clusterdata["servers"]);
+		clusterdata["images"] = cleanArrayItems(clusterdata["images"]);
+		clusterdata["networks"] = cleanArrayItems(clusterdata["networks"]);
+		clusterdata["ports"] = cleanArrayItems(clusterdata["ports"]);
+		clusterdata["routers"] = cleanArrayItems(clusterdata["routers"]);
+		clusterdata["volumes"] = cleanArrayItems(clusterdata["volumes"]);
+		clusterdata["meters"] = cleanArrayItems(clusterdata["meters"], "name");
+
+		Object.keys(clusterdata['networks']).forEach(function(net) { $scope.addNodeToDash(net, 'networks', "Networks", true); });
+		Object.keys(clusterdata["servers"]).forEach(function(serv) { $scope.addNodeToDash(serv, 'servers', 'Servers', true); });
+		Object.keys(clusterdata["routers"]).forEach(function(rou) { $scope.addNodeToDash(rou, 'routers', 'Routers', true); });
+		Object.keys(clusterdata["volumes"]).forEach(function(vol) { $scope.addNodeToDash(vol, 'volumes', 'Volumes'); });
+
+		Object.keys(clusterdata["flavors"]).forEach(function(flav) { clusterdata["lookup"][flav] = "flavors" });
+		Object.keys(clusterdata["floating_ips"]).forEach(function(flip) { clusterdata["lookup"][flip] = "floating_ips" });
+		Object.keys(clusterdata["images"]).forEach(function(img) { clusterdata["lookup"][img] = "images" });
+		Object.keys(clusterdata["ports"]).forEach(function(port) { $scope.addLinkToDash(port, 'port', 'Ports') });
+		$scope.updateForceGraph()
+
+		//Object.keys(clusterdata["networks"]).forEach(function(net) { clusterdata["lookup"][net] = "networks" });
+		//Object.keys(clusterdata["security_groups"]).forEach(function(sec) { clusterdata["lookup"][sec] = "security_groups" });
+		//Object.keys(clusterdata["subnets"]).forEach(function(subnet) { clusterdata["lookup"][subnet] = "subnets" });
+
+		// console.log("We should have just loaded everything.")
+
+		// console.log($scope.entityTypes)
+
+		addEventListeners();
+		createHeatmap();
+
+		//console.log(clusterdata);
+	}
+
+	/**
+	 * Adds an existing network to the Dashboard
+	 * @param {[string]} key [The Network ID]
+	 */
+	$scope.addNodeToDash = function(key, type, typeName, refresh) {
+		console.log('Processing the ' + typeName + ': ' + key);
+		if ($scope.entityTypes[type] === undefined) { $scope.entityTypes[type] = {'name': typeName, 'status': true} };
+		clusterdata["lookup"][key] = type;
+		clusterdata[type][key]['type'] = type;
+		clusterdata[type][key]['class'] = clusterdata[type][key]["router:external"] ? 'publicnetworks' : type;
+		clusterdata[type][key]['size'] = nodeSize[clusterdata[type][key]['class']] ? nodeSize[clusterdata[type][key]['class']] : 16;
+		clusterdata[type][key]['path'] = getNodeShape(clusterdata[type][key]['class'], key);
+		// console.log(clusterdata[type][key])
+		
+		$scope.clusterdata.nodes.push(clusterdata[type][key]);
+		if (refresh) {$scope.updateForceGraph();}
+
+		if (type == 'routers') {
+			// console.log("it's a router, we do more stuff!");
+			// var port_keys = Object.keys(clusterdata["ports"]);
+
+			// for (var j in port_keys) {
+			// 	var porkey = port_keys[j]
+			// 	console.log(clusterdata["ports"][porkey])
+				
+			// 	// TODO: Can the below be simplified, seems a waste to scan through each port just to find correct networks
+			// 	// Same is happening in right pane load for routers
+			// 	if (clusterdata["ports"][porkey]["device_id"] == key) {
+			// 		var portnet = clusterdata["ports"][porkey]["network_id"];
+			// 		// console.log("adding a link between rou: " + key + " and net " + portnet + ".")
+			// 		//$scope.addLinkToForceGraph(key, portnet);
+			// 	}
+			// }
+		} else if (type == 'servers') {
+			console.log('its a server, we do more stuff!')
+			clusterdata["servers"][key]['volumes'] = []
+			clusterdata["servers"][key]["statistics"] = {};
+			clusterdata["servers"][key]["statistics"]["cpu_util"] = {}
+			clusterdata["servers"][key]["statistics"]["network.flow.bytes"] = {}
+		}
+
+		// forceGraphData.nodes.push({name: key, type: type, size: clusterdata[type][key]['size'], path: clusterdata[type][key]['path'], class: clusterdata[type][key]['class']});
+		// console.log('we did it!')
+
+		//if ($scope.clusterdata["neutronnetwork"][key]["router:external"] == true) { $scope.addNodeToForceGraph(key, "netpub", 30); }
+		//else {	$scope.addNodeToForceGraph(key, "net", 25); }
+
+		// $("#circle" + key).dblclick(function(){	loadNetRightPaneInfo(this.id.substring(6)) });
+	}
+
+	/**
+	 * Adds an existing router to the Dashboard
+	 * @param {[string]} key [The ID of the Router]
+	 */
+	$scope.addRouterToDash = function(key, type, typeName) {
+		clusterdata["lookup"][key] = type;
+		if ($scope.entityTypes[type] === undefined) { $scope.entityTypes[type] = {'name': typeName, 'status': true} };
+		clusterdata[type][key]['type'] = type;
+		clusterdata[type][key]['path'] = nodePaths['router'];
+		$scope.clusterdata.push(clusterdata[type][key]);
+		//addToListPane(key, "rou", clusterdata["routers"][key]["name"]);
+		$scope.addNodeToForceGraph(key, "rou", 25);
+		var port_keys = Object.keys(clusterdata["ports"]);
+
+		for (var j in port_keys) {
+			var porkey = port_keys[j]
+			
+			// TODO: Can the below be simplified, seems a waste to scan through each port just to find correct networks
+			// Same is happening in right pane load for routers
+			if (clusterdata["ports"][porkey]["device_id"] == key) {
+				var portnet = clusterdata["ports"][porkey]["network_id"];
+				// console.log("adding a link between rou: " + key + " and net " + portnet + ".")
+				$scope.addLinkToForceGraph(key, portnet);
+			}
+		}
+		$("#circle" + key).dblclick(function() {
+			loadRouRightPaneInfo(this.id.substring(6))
+		});
+	}
+
+	/**
+	 * Adds an existing server to the Dashboard
+	 * @param {[string]} key [The instance_id of the server]
+	 */
+	$scope.addServerToDash = function(key, type, typeName) {
+		clusterdata["lookup"][key] = type;
+		clusterdata["servers"][key]['volumes'] = []
+		if ($scope.entityTypes[type] === undefined) { $scope.entityTypes[type] = {'name': typeName, 'status': true} };
+		clusterdata[type][key]['type'] = type;
+		clusterdata[type][key]['path'] = nodePaths['linux'];
+		$scope.clusterdata.push(clusterdata[type][key]);
+		$scope.addNodeToForceGraph(key, "serv", 18);
+		//addToListPane(key, "serv", clusterdata["servers"][key]["name"]);
+		$("#" + key).click(function(){loadInstRightPaneInfoRef(this.id); /*$("#" + key).data("opentips")[0].hide()*/});
+		$("#circle" + key).dblclick(function(){loadInstRightPaneInfoRef(this.id.substring(6)); /*$("#" + key).data("opentips")[0].hide()*/});
+		//$("#" + key).dblclick(function(){alert("You just double clicked on " + clusterdata["servers"][key]["name"] );});
+		$("#" + key).bind("contextmenu", function(){alert("You just opened a context menu and clicked on " + clusterdata["servers"][key]["name"] );})
+		//$("#" + Object.keys(servers)[i]).mouseenter(function(){loadTooltipInfo(Object.keys(servers)[i]);})
+		//$("#" + Object.keys(servers)[i]).mouseleave(function(){$("#" + Object.keys(servers)[i]).data("opentips")[0].hide();})
+		for (var j in clusterdata["servers"][key]["addresses"]) {
+			// TODO: We shouldn't need to check this every time, perhaps edit server data at start to set network by ID not name?
+			var net = getNetworkByName(j);
+			$scope.addLinkToForceGraph(key, net);
+		}
+		clusterdata["servers"][key]["statistics"] = {};
+		clusterdata["servers"][key]["statistics"]["cpu_util"] = {}
+		clusterdata["servers"][key]["statistics"]["network.flow.bytes"] = {}
+	}
+
+	/**
+	 * Adds an existing volume to the Dashboard
+	 * @param {[string]} key [The volume_id of the volume]
+	 */
+	$scope.addVolumeToDash = function(key, type, typeName) {
+		clusterdata["lookup"][key] = "volumes";
+		if ($scope.entityTypes[type] === undefined) { $scope.entityTypes[type] = {'name': typeName, 'status': true} };
+		clusterdata[type][key]['type'] = type;
+		clusterdata[type][key]['path'] = nodePaths['volume'];
+		$scope.clusterdata.push(clusterdata[type][key]);
+		$scope.addNodeToForceGraph(key, "vol", 12)
+
+		// The parameter name seems to have changed between OpenStack versions so let's sanity check first.
+		var name = clusterdata["volumes"][key]["name"]
+		if (name === undefined) {
+			name = clusterdata["volumes"][key]["display_name"];
+		}
+
+		addToListPane(key, "vol", name)
+
+		for (var j in clusterdata["volumes"][key]["attachments"]) {
+			var serv = clusterdata['volumes'][key]["attachments"][j]["server_id"];
+			// console.log("Linking vol: " + key + " with instance " + clusterdata['volumes'][key]["attachments"][j]["server_id"])
+			$scope.addLinkToForceGraph(key, serv);
+			clusterdata['servers'][serv]['volumes'].push(key)
+		}
+		$("#circle" + key).dblclick(function(){
+			loadVolRightPaneInfo(this.id.substring(6))
+		});
+	}
+
+	/**
+	 *	Adds a node to the force layout
+	 *
+	 *	@param name		The unique name of the node. Must be unique
+	 *	@param type 	What the node represents, currently just instance and volume.
+	 */
+	// $scope.addNodeToForceGraph = function(name, type, size) {
+	// 	if (size === undefined) { size = 16; }
+
+	// 	forceGraphData.nodes.push({name: name, type: type, size: size});
+	// 	$scope.updateForceGraph();
+	// }
+
+	/**
+	 *	Updates the force Simulation. Call every time we make a change to restart the simulation
+	 */
+	$scope.updateForceGraph = function() {
+		edges = edges.data($scope.clusterdata.edges, function(d) { return d.source.index + "-" + d.target.index; });
+		edges.enter().append("line").style("stroke", "#ccc").style("stroke-width", 3);
+		edges.exit().remove();
+
+		nodes = nodes.data($scope.clusterdata.nodes, function(d) { console.log(d); return d.name ;})
+
+		nodes.enter().append("circle").attr("id", function(d) { return "circle" + d.name })
+			.attr("r", function(d) { return d.size })
+			.style("opacity", function(d) {return getNodeOpacity(d.name)})
+			.style("fill", function(d, i) {	return d3.rgb(getNodeColor(d.class)); })
+			.attr("stroke-width", function(d){if (d.type == "serv"){return 2} else {return 0}})
+			.attr("stroke", function(d){if (d.type == "serv") {return getServerStateColor(d.name)} else {return "transparent"} })
+			.call(force.drag).on("mousedown", disableRedraw).on("mouseup", enableRedraw).transition()
+		  .duration(750)
+		  .ease("elastic");
+
+		nodes.enter().append('text').text(function(d) { return d.name }).attr("id", function(d) { return "label-" + d.name }).attr('class', 'label hidden').attr('text-anchor', 'middle');
+
+		nodes.enter().append("path").attr("d", function(d) {return d.path ? d.path : getNodeShape(d.type, d.name)}).attr("id", function(d) { return d.name })
+		.style("fill", function(d, i) {	return d3.rgb("#FFF"); }).attr("class" ,"nodeicon")
+		//.attr("transform", function(d) { console.log(d); return "translate(" + (d.x - getIconOffset(d.type, "x", d.name)) + "," + (d.y - getIconOffset(d.type, "y", d.name)) + "), scale(" + getIconScale(d.type, d.name) + ")"; })
+			.on("mousedown", disableRedraw).on("mouseup", enableRedraw);
+
+		nodes.exit().remove();
+		force.start();
+	}
+
+	$scope.paramComp = function(element, param) {
+		return element.id == param;
+	}
+
+	/**
+	 *	Adds a connection between two nodes in the force layout
+	 *
+	 *	@param node1	The first node to connect, identified by Name
+	 *	@param node2 	The second node to connect, identified by Name
+	 */
+	$scope.addLinkToForceGraph = function(node1, node2) {
+		// First we need to find the index of each node
+		// var item = $scope.clusterdata.nodes.filter($scope.paramComp('name', node1))
+		// console.log(item)
+		console.log(node1);
+		console.log(node2)
+		var n1 = $scope.getNodeIndexByName(node1);
+		var n2 = $scope.getNodeIndexByName(node2);
+		$scope.clusterdata.edges.push({source: n1, target: n2});
+
+		$scope.updateForceGraph();
+	}
+
+	$scope.getNodeIndexByName = function(name) {
+		return $scope.clusterdata.nodes.filter(function(node) { return node['name'] == name})[0]['index'];
+	}
+
+	$document.ready(function() {
+		loadPaneLayout();
+		loadNewForceGraph();
+		setButtonStates();
+		//loadListPane();
+		$scope.getOpenStackData($scope.loadInitialServers, "avosstartup")
+		//loadTopGraph();
+		// getOpenStackData(loadInitialServers, "avosstartup");
+
+		document.body.onmousedown = function() { mouseDown = 1;	}
+		document.body.onmouseup = function() { mouseDown = 0; }
+
+		if (d3.event) {
+			// prevent browser's default behavior
+			d3.event.preventDefault();
+		}
+
+		$(window).resize(function () {
+			waitForFinalEvent(function(){
+				var w = $('#pane-center').width();
+				var h = $('#pane-center').height();
+				svg.attr("width", w).attr("height", h);
+				$("#pane-center canvas").attr("width", w).attr("height", h);
+			}, 500);
+		});
+	});
+
+});
+
+hz.directive('clickAnywhereButHere', function($document){
+  return {
+    restrict: 'A',
+    link: function(scope, elem, attr, ctrl) {
+      elem.bind('click', function(e) {
+        // this part keeps it from firing the click on the document.
+        e.stopPropagation();
+      });
+      $document.bind('click', function() {
+        // magic here.
+        scope.$apply(attr.clickAnywhereButHere);
+      })
+    }
+  }
+})
+
+hz.directive('svgPathReplace', function($timeout) {
+  return {
+    restrict: 'E',
+    link: function(scope, lElement, lAttr) {
+      var path = makeNode('path', lElement, lAttr);
+      var newElement = path.cloneNode(true);
+      $timeout(function() {
+        lElement.replaceWith(newElement);
+      });
+    }
+  };
+});
+
+function makeNode(name, element, settings) {
+  var ns = 'http://www.w3.org/2000/svg';
+  var node = document.createElementNS(ns, name);
+  for (var attribute in settings) {
+    var value = settings[attribute];
+    if (value !== null && value !== null && !attribute.match(/\$/) &&
+      (typeof value !== 'string' || value !== '')) {
+      node.setAttribute(attribute, value);
+    }
+  }
+  return node;
+}
 
 /**
  * Master function to pull data from the server
@@ -79,138 +460,20 @@ function getOpenStackData(callback, param) {
 	})
 }
 
-/**
- *	Loads an internal array of instances (servers) and other OpenStack data
- *
- *	@param data		Array of servers to load
- */
-function loadInitialServers(data) {
-	clusterdata = data;
-	
-	clusterdata["lookup"] = {}
-	clusterdata["flavors"] = cleanArrayItems(clusterdata["flavors"]);
-	clusterdata["servers"] = cleanArrayItems(clusterdata["servers"]);
-	clusterdata["images"] = cleanArrayItems(clusterdata["images"]);
-	clusterdata["neutronnetwork"] = cleanArrayItems(clusterdata["neutronnetwork"]);
-	clusterdata["ports"] = cleanArrayItems(clusterdata["ports"]);
-	clusterdata["routers"] = cleanArrayItems(clusterdata["routers"]);
-	clusterdata["volumes"] = cleanArrayItems(clusterdata["volumes"]);
-	clusterdata["meters"] = cleanArrayItems(clusterdata["meters"], "name");
-
-	Object.keys(clusterdata['neutronnetwork']).forEach(function(net) { addNetworkToDash(net); });
-	Object.keys(clusterdata["routers"]).forEach(function(rou) { addRouterToDash(rou); });
-	Object.keys(clusterdata["servers"]).forEach(function(serv) { addServerToDash(serv); });
-	Object.keys(clusterdata["volumes"]).forEach(function(vol) { addVolumeToDash(vol); });
-
-	Object.keys(clusterdata["flavors"]).forEach(function(flav) { clusterdata["lookup"][flav] = "flavors" });
-	Object.keys(clusterdata["floating_ips"]).forEach(function(flip) { clusterdata["lookup"][flip] = "floating_ips" });
-	Object.keys(clusterdata["images"]).forEach(function(img) { clusterdata["lookup"][img] = "images" });
-	Object.keys(clusterdata["ports"]).forEach(function(port) { clusterdata["lookup"][port] = "ports" });
-
-	//Object.keys(clusterdata["networks"]).forEach(function(net) { clusterdata["lookup"][net] = "networks" });
-	//Object.keys(clusterdata["security_groups"]).forEach(function(sec) { clusterdata["lookup"][sec] = "security_groups" });
-	//Object.keys(clusterdata["subnets"]).forEach(function(subnet) { clusterdata["lookup"][subnet] = "subnets" });
-
-	// console.log("We should have just loaded everything.")
-
-	addEventListeners();
-	createHeatmap();
-
-	console.log(clusterdata);
-}
-
-/**
- * Adds an existing network to the Dashboard
- * @param {[string]} key [The Network ID]
- */
-function addNetworkToDash(key) {
-	clusterdata["lookup"][key] = "neutronnetwork";
-	addToListPane(key, "net", clusterdata["neutronnetwork"][key]["name"]);
-
-	if (clusterdata["neutronnetwork"][key]["router:external"] == true) { addNodeToForceGraph(key, "netpub", 30); }
-	else {	addNodeToForceGraph(key, "net", 25); }
-
-	$("#circle" + key).dblclick(function(){	loadNetRightPaneInfo(this.id.substring(6)) });
-}
-
-/**
- * Adds an existing router to the Dashboard
- * @param {[string]} key [The ID of the Router]
- */
-function addRouterToDash(key) {
-	clusterdata["lookup"][key] = "routers";
-	addToListPane(key, "rou", clusterdata["routers"][key]["name"]);
-	addNodeToForceGraph(key, "rou", 25);
-	//console.log("No issues so far")
-	var port_keys = Object.keys(clusterdata["ports"]);
-
-	for (var j in port_keys) {
-		var porkey = port_keys[j]
-		
-		// TODO: Can the below be simplified, seems a waste to scan through each port just to find correct networks
-		// Same is happening in right pane load for routers
-		if (clusterdata["ports"][porkey]["device_id"] == key) {
-			var portnet = clusterdata["ports"][porkey]["network_id"];
-			// console.log("adding a link between rou: " + key + " and net " + portnet + ".")
-			addLinkToForceGraph(key, portnet);
-		}
-	}
-	$("#circle" + key).dblclick(function() {
-		loadRouRightPaneInfo(this.id.substring(6))
-	});
-}
-
-/**
- * Adds an existing server to the Dashboard
- * @param {[string]} key [The instance_id of the server]
- */
-function addServerToDash(key) {
-	clusterdata["lookup"][key] = "servers";
-	clusterdata["servers"][key]['volumes'] = []
-	addNodeToForceGraph(key, "serv", 18);
-	addToListPane(key, "serv", clusterdata["servers"][key]["name"]);
-	$("#" + key).click(function(){loadInstRightPaneInfoRef(this.id); /*$("#" + key).data("opentips")[0].hide()*/});
-	$("#circle" + key).dblclick(function(){loadInstRightPaneInfoRef(this.id.substring(6)); /*$("#" + key).data("opentips")[0].hide()*/});
-	//$("#" + key).dblclick(function(){alert("You just double clicked on " + clusterdata["servers"][key]["name"] );});
-	$("#" + key).bind("contextmenu", function(){alert("You just opened a context menu and clicked on " + clusterdata["servers"][key]["name"] );})
-	//$("#" + Object.keys(servers)[i]).mouseenter(function(){loadTooltipInfo(Object.keys(servers)[i]);})
-	//$("#" + Object.keys(servers)[i]).mouseleave(function(){$("#" + Object.keys(servers)[i]).data("opentips")[0].hide();})
-	for (var j in clusterdata["servers"][key]["addresses"]) {
-		// TODO: We shouldn't need to check this every time, perhaps edit server data at start to set network by ID not name?
-		var net = getNetworkByName(j);
-		addLinkToForceGraph(key, net);
-	}
-	clusterdata["servers"][key]["statistics"] = {};
-	clusterdata["servers"][key]["statistics"]["cpu_util"] = {}
-	clusterdata["servers"][key]["statistics"]["network.flow.bytes"] = {}
-}
-
-/**
- * Adds an existing volume to the Dashboard
- * @param {[string]} key [The volume_id of the volume]
- */
-function addVolumeToDash(key) {
-	clusterdata["lookup"][key] = "volumes";
-	addNodeToForceGraph(key, "vol", 12)
-
-	// The parameter name seems to have changed between OpenStack versions so let's sanity check first.
-	var name = clusterdata["volumes"][key]["name"]
-	if (name === undefined) {
-		name = clusterdata["volumes"][key]["display_name"];
-	}
-
-	addToListPane(key, "vol", name)
-
-	for (var j in clusterdata["volumes"][key]["attachments"]) {
-		var serv = clusterdata['volumes'][key]["attachments"][j]["server_id"];
-		// console.log("Linking vol: " + key + " with instance " + clusterdata['volumes'][key]["attachments"][j]["server_id"])
-		addLinkToForceGraph(key, serv);
-		clusterdata['servers'][serv]['volumes'].push(key)
-	}
-	$("#circle" + key).dblclick(function(){
-		loadVolRightPaneInfo(this.id.substring(6))
-	});
-}
+var iconScale = {'servers': 1, 'volumes': 0.6, 'publicnetworks': 1.5, 'networks': 1.36, 'routers': 1}
+var nodeCharge = {'serv': -1000, 'vol': -400, 'net': -4000, 'rou': -5000}
+var nodeColor = {'servers': "#678", 'volumes': "#ffa03a", 'networks': "brown", 'publicnetworks': '#087000', 'routers': "purple"}
+var nodeLinkSize = {'serv': 150, 'vol': 25, 'net': 200, 'rou': 200}
+var nodeSize = {'servers': 18, 'publicnetworks': 30, 'networks': 25, 'volumes': 12, 'routers': 25}
+var nodeTextOffsetY = {'serv': 30, 'vol': 20}
+var serverStateColor = {"ACTIVE": "#5cb85c", "ERROR": "#f0ad4e", "BUILD": "#428bca"}
+function getIconScale(type, name) {return iconScale[type] || 1; }
+function getNodeCharge(type) { return nodeCharge[type] ? nodeCharge[type] : -800; }
+function getNodeColor(type) { return nodeColor[type] ? nodeColor[type] : "black"; }
+function getNodeGravity(type) { return 0.12; }
+function getNodeLinkSize(type) { return nodeLinkSize[type] ? nodeLinkSize[type] : 550; }
+function getNodeTextOffsetY(type) { return nodeTextOffsetY[type] ? nodeTextOffsetY[type] : 40 }
+function getServerStateColor(name) { return serverStateColor[clusterdata["servers"][name]["status"]] ? serverStateColor[clusterdata["servers"][name]["status"]] : "#d9534f" }
 
 function getEntityType(key) {
 	return clusterdata["lookup"][key];
@@ -236,86 +499,6 @@ function addEventListeners() {
 	else if (type == "vol") {  	loadVolRightPaneInfo(aData[aPos][0])    }
 	else { 	console.log("I don't know what entity type you clicked, but I don't know what to do with it...")    }
   });
-}
-
-/**
- *	Loads a new force graph in the center pane.
- */
-function loadNewForceGraph() {
-
-	var w = $('#pane-center').width();
-	var h = $('#pane-center').height();
-
-	forceGraphData = {	nodes: [/*{ name: "globalendpoint", type: "endpoint", size: 26 }*/], edges: [ /*{ source: 0, target: 1 }*/ ] };
-
-	force = d3.layout.force()
-						 .nodes(forceGraphData.nodes)
-						 .links(forceGraphData.edges)
-						 .size([w, h])
-						 .linkDistance(function(d){return getNodeLinkSize(d.source.type)})
-						 //.linkStrength(.5)
-						 .gravity(0.12)//(function(d) { return getNodeGravity(d.type) })
-						 //.friction(.5)
-						 .charge(function(d) { return getNodeCharge(d.type) });
-
-	svg = d3.select("#pane-center").append("svg").attr("width", w).attr("height", h)
-						.call(zoom = d3.behavior.zoom().scaleExtent([0.2, 5])
-							.on("zoom", redraw))
-							.on("dblclick.zoom", null)
-							.on("contextmenu.zoom", null);
-
-	innervis = svg.append("svg:g").append("svg:g");
-
-	innervis.append("g").attr("class", "links");
-	innervis.append("g").attr("class", "nodes");
-
-	edges = svg.select(".links").selectAll("line");
-	nodes = svg.select(".nodes").selectAll("circle");	
-
-	//Every time the simulation "ticks", this will be called
-	force.on("tick", function() {
-		edges.attr("x1", function(d) { return d.source.x; })
-			 .attr("y1", function(d) { return d.source.y; })
-			 .attr("x2", function(d) { return d.target.x; })
-			 .attr("y2", function(d) { return d.target.y; });
-
-		// @TODO: Below is a very silly way to do this, couldn't think of another for now.
-		nodes.attr("transform", function(d) { return "translate(" + (d.x - getIconOffset(d.type, "x", d.name)) + "," + (d.y - getIconOffset(d.type, "y", d.name)) + "), scale(" + getIconScale(d.type, d.name) + ")"; })
-				.attr("child", function(d) { $("#circle" + d.name).attr("transform", "translate(" + d.x + "," + d.y + ")"); return "updated"; })
-				.attr("text", function(d) { $("#label-" + d.name).attr("transform", "translate(" + d.x + "," + (d.y + getNodeTextOffsetY(d.type)) + ")"); return "updated"; });
-
-	});
-}
-
-/**
- *	Updates the force Simulation. Call every time we make a change to restart the simulation
- */
-function updateForceGraph() {
-	edges = edges.data(forceGraphData.edges, function(d) { return d.source.index + "-" + d.target.index; });
-	edges.enter().append("line").style("stroke", "#ccc").style("stroke-width", 3);
-	edges.exit().remove();
-
-	nodes = nodes.data(forceGraphData.nodes, function(d) {  return d.name;})
-
-	nodes.enter().append("circle").attr("id", function(d) { return "circle" + d.name })
-		.attr("r", function(d) { return d.size })
-		.style("opacity", function(d) {return getNodeOpacity(d.name)})
-		.style("fill", function(d, i) {	return d3.rgb(getNodeColor(d.type)); })
-		.attr("stroke-width", function(d){if (d.type == "serv"){return 2} else {return 0}})
-		.attr("stroke", function(d){if (d.type == "serv") {return getServerStateColor(d.name)} else {return "transparent"} })
-		.call(force.drag).on("mousedown", disableRedraw).on("mouseup", enableRedraw).transition()
-	  .duration(750)
-	  .ease("elastic");
-
-	nodes.enter().append('text').text(function(d) { return clusterdata[clusterdata["lookup"][d.name]][d.name]["name"] }).attr("id", function(d) { return "label-" + d.name }).attr('class', 'label hidden').attr('text-anchor', 'middle');
-
-	nodes.enter().append("path").attr("d", function(d) {return getNodeShape(d.type, d.name)}).attr("id", function(d) { return d.name })
-	.style("fill", function(d, i) {	return d3.rgb("#FFF"); }).attr("class" ,"nodeicon")
-	//.attr("transform", function(d) { console.log(d); return "translate(" + (d.x - getIconOffset(d.type, "x", d.name)) + "," + (d.y - getIconOffset(d.type, "y", d.name)) + "), scale(" + getIconScale(d.type, d.name) + ")"; })
-		.on("mousedown", disableRedraw).on("mouseup", enableRedraw);
-
-	nodes.exit().remove();
-	force.start();
 }
 
 /**
@@ -366,18 +549,6 @@ function resetZoom() {
 // TODO: Currently unimplemented. On redraw, any node id in this array will be set to full opacity, and others to 50%
 var current_selection = []
 
-var nodeCharge = {'serv': -1000, 'vol': -400, 'net': -4000, 'rou': -5000}
-var nodeColor = {'serv': "#678", 'vol': "#ffa03a", 'net': "brown", 'rou': "purple"}
-var nodeLinkSize = {'serv': 150, 'vol': 25, 'net': 200, 'rou': 200}
-var nodeTextOffsetY = {'serv': 30, 'vol': 20}
-var serverStateColor = {"ACTIVE": "#5cb85c", "ERROR": "#f0ad4e", "BUILD": "#428bca"}
-function getNodeCharge(type) { return nodeCharge[type] ? nodeCharge[type] : -800; }
-function getNodeColor(type) { return nodeColor[type] ? nodeColor[type] : "#087000"; }
-function getNodeGravity(type) { return 0.12; }
-function getNodeLinkSize(type) { return nodeLinkSize[type] ? nodeLinkSize[type] : 550; }
-function getNodeTextOffsetY(type) { return nodeTextOffsetY[type] ? nodeTextOffsetY[type] : 40 }
-function getServerStateColor(name) { return serverStateColor[clusterdata["servers"][name]["status"]] ? serverStateColor[clusterdata["servers"][name]["status"]] : "#d9534f" }
-
 /**
  *	Returns the opacity of a node. 100% if selection is empty or it is in selection, else 50% 
  *
@@ -393,7 +564,7 @@ function getNodeOpacity(name) {
 
 // @TODO Add the ability to collapse a network, which sets the link length to very small and makes instances zoom into and partially hide behind it's network
 
-var nodeShapes = {'vol': 'volume', 'net': 'network', 'netpub': 'publicnetwork', 'rou': 'router'};
+var nodeShapes = {'volumes': 'volumes', 'networks': 'networks', 'publicnetworks': 'publicnetworks', 'routers': 'routers'};
 var imageList = ["ubuntu", "redhat", "suse", "linux", "wordpress", "windows", "centos", "fedora", "debian", "hadoop", "magento", "drupal", "android", "noideawhatthisimageis"];
 var imageLookup = {}
 
@@ -415,7 +586,7 @@ imageLookup['hadoop'].push('sahara');
  *	@param 	name 	the ID of the element. Used to see if it's in the list. optional (if not a server)
  */
 function getNodeShape(type, name) {
-	if (type == "serv") { 
+	if (type == "servers") { 
 		var imagename = getInstanceImage(name).toLowerCase();
 		for (var i in imageList) {
 			if (imagename.indexOf(imageList[i]) != -1 && nodePaths[imageList[i]]) {
@@ -441,24 +612,18 @@ function getInstanceImage(id) {
 	return clusterdata["images"][imageid]["name"];
 }
 
-iconScale = {}
 
-function getIconScale(type, name) {
-	if (type == "serv") { return 1 }
-	else if (type == "vol") { return 0.6;}
-	else if (type == "netpub"){ return 1.5; }
-	else if (type == "net"){ return 1.36; }
-	else if (type == "rou"){ return 1; }
-	else { return 1; }
-}
 
-iconOffset = {
-				'vol': {'x': 10, 'y': 7.5 },
-				'netpub': 23,
-				'net': {'x': 21.5, 'y': 22},
-				'rou': '15'
+var iconOffset = {
+				'volumes': {'x': 10, 'y': 7.5 },
+				'publicnetworks': 23,
+				'networks': {'x': 21.5, 'y': 22},
+				'routers': '15'
 			}
+
 function getIconOffset(type, axis, name) {
+	if (type == 'servers') {return 1}
+	else { return iconOffset[type][axis] || iconOffset[type] || 1}
 	if (type == "vol") { if (axis == "x") {return 10;}	else {return 7.5} }
 	else if (type == "serv") { 
 		var imagename = getInstanceImage(name).toLowerCase();
@@ -490,8 +655,8 @@ function getIconOffset(type, axis, name) {
  * @param name 	The unique name of the node. Must be unique
  */
 function getNetworkByName(name) {
-	for (var i in clusterdata["neutronnetwork"]) {
-		if (clusterdata["neutronnetwork"][i]["name"] == name) {
+	for (var i in clusterdata["networks"]) {
+		if (clusterdata["networks"][i]["name"] == name) {
 			return i;
 		}
 	}
@@ -510,38 +675,6 @@ function getSecurityGroupByName(name) {
 		}
 	}
 	return undefined;
-}
-
-/**
- *	Adds a node to the force layout
- *
- *	@param name		The unique name of the node. Must be unique
- *	@param type 	What the node represents, currently just instance and volume.
- */
-function addNodeToForceGraph(name, type, size) {
-	if (size === undefined) { size = 16; }
-
-	forceGraphData.nodes.push({name: name, type: type, size: size});
-	updateForceGraph();
-}
-
-function getNodeIndexByName(name) {
-	return forceGraphData.nodes.filter(function(node) {return node['name'] == name})[0]['index'];
-}
-
-/**
- *	Adds a connection between two nodes in the force layout
- *
- *	@param node1	The first node to connect, identified by Name
- *	@param node2 	The second node to connect, identified by Name
- */
-function addLinkToForceGraph(node1, node2) {
-	// First we need to find the index of each node
-	var n1 = getNodeIndexByName(node1);
-	var n2 = getNodeIndexByName(node2);
-	forceGraphData.edges.push({source: n1, target: n2});
-
-	updateForceGraph();
 }
 
 /**
@@ -650,12 +783,12 @@ function updateHeatmapReal(data) {
 function openSearch() {
 	// TODO: This is full of UX glitches
 	myLayout.slideOpen('east');
-	$("#fake-search").animate({width: $("#pane-east").width()}, 500);
+	// $("#fake-search").animate({width: $("#pane-east").width()}, 500);
 }
 
 function closeSearch() {
 	myLayout.slideClosed('east');
-	$("#fake-search").animate({width: 200}, 1000);
+	// $("#fake-search").animate({width: 200}, 1000);
 }
 
 function loadListPane() {
@@ -668,17 +801,17 @@ function loadListPane() {
 		"bAutoWidth": false
 	} );
 
-	$('#entity-table').dataTable().fnSetColumnVis( 0, false );
+	// $('#entity-table').dataTable().fnSetColumnVis( 0, false );
 
 	// $("#entity-table_filter").attr("class", "fake-search");
 	// $("#entity-table_filter input").attr("class", "form-control");
 }
 
 
-function filter() {
-	var string = $('#fake-search-box').val();
-	$('#entity-table').dataTable().fnFilter(string);
-}
+// function filter() {
+// 	var string = $('#fake-search-box').val();
+// 	// $('#entity-table').dataTable().fnFilter(string);
+// }
 
 /**
  *	Add an item to the list pane
@@ -687,7 +820,7 @@ function filter() {
  *	@param 	name 	Name of the element
  */
 function addToListPane(id, type ,name) {
-  $('#entity-table').dataTable().fnAddData( [id, type ,name] );
+  // $('#entity-table').dataTable().fnAddData( [id, type ,name] );
 }
 
 /**
@@ -1577,6 +1710,8 @@ function loadPaneLayout() {
 	if (!cookieExists) { toggleStateManagement( true, false );}
 	// 'Reset State' button requires updated functionality in rc29.15+
 	if ($.layout.revision && $.layout.revision >= 0.032915) { $('#btnReset').show(); }
+
+	$('pane-east').css('display', 'block');
 }
 
 /**

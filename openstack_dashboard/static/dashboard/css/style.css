@@ -23,7 +23,7 @@ html, body, #container, #main_content, #content_body, .row, .col-xs-12 { height:
 
 .compress {font-weight: bold; line-height: 20%;}
 
-#fake-search {	position: absolute; top: 15px; right: 15px ; width: 200px; z-index: 1020;}
+#fake-search {	position: absolute; top: 15px; right: 15px ; width: 200px; z-index: 1020; -webkit-transition: width 1s; transition: width 1s;}
 #flows-label {position: absolute; right: 10px; top: 10px; height: 1em; font-weight: bold;}
 #real-search {}
 .fake-search {	position: absolute; top: 15px; right: 15px ; width: 200px; z-index: 1020;}
@@ -53,10 +53,12 @@ svg, g { background-color: none; }
  canvas {pointer-events: none;}
  .nodeicon {pointer-events: none;}
 
+.searchanimate {}
+
 /* SEARCH PANE */
 
 .list-selected-item {background-color: #ABC !important;}
-#entity-table{-webkit-user-select: none; /* Chrome/Safari */ -moz-user-select: none; /* Firefox */ -ms-user-select: none; /* IE10+ */ -o-user-select: none; user-select: none; }
+#entity-table{ width: 400px; opacity: 0; -webkit-user-select: none; /* Chrome/Safari */ -moz-user-select: none; /* Firefox */ -ms-user-select: none; /* IE10+ */ -o-user-select: none; user-select: none; -webkit-transition: opacity 2s; transition: opacity 2s; padding: 0; margin: 0; border-radius: 0; max-height: calc(600px); overflow: auto; }
 #entity-table_filter {display: none;}
 
 /* SPLIT PANE & CONTENT-DIVs */
@@ -79,6 +81,7 @@ svg, g { background-color: none; }
 .ui-layout-south {position: absolute; margin: 0px; top: auto; bottom: 0px; left: 0px; right: 0px; width: auto; z-index: 0; height: 26px; display: block; visibility: visible;}
 #pane-east { overflow-x: hidden; /*put container inside, and assign to that not pane-east */ padding: 10px; -webkit-box-shadow: 3px 0px 20px 6px #DDD;  /* Safari 3-4, iOS 4.0.2 - 4.2, Android 2.3+ */-moz-box-shadow:    3px 0px 20px 6px #DDD;  /* Firefox 3.5 - 3.6 */  box-shadow:         3px 0px 20px 6px #DDD;  /* Opera 10.5, IE 9, Firefox 4+, Chrome 6+, iOS 5 */ padding-top: 50px ;}
 
+.nomargin { margin :0 !important;}
 
 .ui-layout-resizer-north { font-size: 1px; text-align: left; overflow: hidden; z-index: 2; cursor: n-resize; top: 87px; width: 1920px; height: 60px; left: 0px;}
 .ui-layout-toggler-north { display: block; overflow: hidden; text-align: center; font-size: 1px; cursor: pointer; z-index: 1; visibility: visible; width: 48px; height: 60px; left: 935px; top: 0px;}
