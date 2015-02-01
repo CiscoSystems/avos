@@ -134,7 +134,7 @@ avos = hz.controller("avosCtrl", function($scope, $http, $document, $filter){
 			link.nodeColor = $scope.getNodeColor(link.class)
 		} 
 		else if (typeKey == 'volumes') {
-			if (link.attachments) {
+			if (link.attachments.length) {
 				l1 = link.id;
 				l2 = link.attachments[0].server_id;
 				// @TODO Lets add a reference to this volume in the attached server for ease
