@@ -74,7 +74,7 @@ avos = hz.controller("avosCtrl", function($scope, $http, $document, $filter){
 	 *	@param data		Array of servers to load
 	 */
 	$scope.loadInitialServers = function(data) {
-		console.log(data);
+		// console.log(data);
 		data.images.forEach(function(img) { img.path = $scope.getNodePath('images', img); $scope.clusterdata.images.push(img); $scope.clusterdata.lookup[img.id] = img });
 		data.networks.forEach(function(net) { $scope.addNodeToDash(net, 'networks', 'Network', true) });
 		data.servers.forEach(function(serv) { $scope.addNodeToDash(serv, 'servers', 'Server', true) });
@@ -178,7 +178,7 @@ avos = hz.controller("avosCtrl", function($scope, $http, $document, $filter){
 			.size([w, h])
 			.linkDistance(function(d){return $scope.getNodeLinkSize(d.source.typeKey)})
 			.linkStrength(1)
-			.gravity(0.12)//(function(d) { return $scope.getNodeGravity(d.type) })
+			.gravity(0.15)//(function(d) { return $scope.getNodeGravity(d.type) })
 			.friction(0.7)
 			.charge(function(d) { return $scope.getNodeCharge(d.typeKey) });
 
