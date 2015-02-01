@@ -17,96 +17,8 @@ from horizon import exceptions
 from openstack_dashboard import api
 
 LOG = logging.getLogger("AVOS:::")
-LOG.debug("")
-LOG.debug("")
-LOG.debug("")
 
 _ISO8601_TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
-
-# def get_cpu_util_list():
-#     nova = novaclient.Client("1.1", username=OS_USERNAME, api_key=OS_PASSWORD, auth_url=OS_ENDPOINT, project_id=OS_TENANT)
-#     servers = nova.servers.list(detailed=True)
-#     ceilome
-#             packet[i.id] = 0
-#         else:
-#             packet[i.id] = u[0].counter_volume
-#             #print u[0].timestampeter = ceilometerclient.get_client("2", os_auth_url=OS_ENDPOINT, os_username=OS_USERNAME, os_password=OS_PASSWORD, os_tenant_name=OS_TENANT )
-#     packet = {}
-#     for i in servers:
-#         u = ceilometer.samples.list(meter_name="cpu_util", q=[{"field":"resource_id","value":i.id}], limit=1)
-#         if not u:
-#     #print packet
-#     return json.dumps(packet)
-
-# def get_new_cpu_util_list(timestamp):
-#     ceilometer = ceilometerclient.get_client("2", os_auth_url=OS_ENDPOINT, os_username=OS_USERNAME, os_password=OS_PASSWORD, os_tenant_name=OS_TENANT )
-#     packet = {}
-#     if not timestamp:
-#         t = ceilometer.samples.list(meter_name="cpu_util", limit=1)
-#         #print t
-#         timestamp = t[0].timestamp
-#         ts = iso8601.parse_date(timestamp) - datetime.timedelta(0, 5)
-#         timestamp = isotime(ts)
-#         #nowoff = datetime.datetime.now() - datetime.timedelta(3, 10)
-#         #timestamp = nowoff.isoformat()
-#         #print timestamp
-#         #timestamp = str(nowoff.year) + "-" + str(nowoff.month) + "-" + str(nowoff.day - 2) + "T" + str(nowoff.hour) + ":" + str(nowoff.minute) + ":" + str(nowoff.second) + "Z"
-#     #print timestamp
-#     u = ceilometer.samples.list(meter_name="cpu_util",  q=[{"field": "timestamp", "op": "ge", "value": timestamp}])
-#     #print u
-#     #u = ceilometer.samples.list(meter_name="network.flow.bytes",  limit=1000)
-#     for i in u:
-#         #packet[]
-#         #print i
-#         if not i.resource_id in packet:
-#             packet[i.resource_id] = {}
-#             packet[i.resource_id][i.timestamp] = i.counter_volume
-#     return json.dumps(packet)
-
-# def get_latest_feature_list():
-#     nova = novaclient.Client("1.1", username=OS_USERNAME, api_key=OS_PASSWORD, auth_url=OS_ENDPOINT, project_id=OS_TENANT)
-#     servers = nova.servers.list(detailed=True)
-#     ceilometer = ceilometerclient.get_client("2", os_auth_url=OS_ENDPOINT, os_username=OS_USERNAME, os_password=OS_PASSWORD, os_tenant_name=OS_TENANT )
-#     packet = {}
-#     meters = ["cpu_util", "disk.write.requests.rate"]
-#     for i in servers:
-#         packet[i.id] = {}
-#         for j in meters:
-#             packet[i.id][j] = {}
-#             u = ceilometer.samples.list(meter_name=j, q=[{"field":"resource_id","value":i.id}], limit=1)
-#             #print u
-#             if not u:
-#                 #print u
-#                 packet[i.id][j]["value"] = 0
-#                 packet[i.id][j]["timestamp"] = 0
-#             else:
-#                 packet[i.id][j]["value"] = u[0].counter_volume
-#                 packet[i.id][j]["timestamp"] = u[0].timestamp
-#     return json.dumps(packet)
-
-# def get_latest_network_flow(timestamp):
-#     ceilometer = ceilometerclient.get_client("2", os_auth_url=OS_ENDPOINT, os_username=OS_USERNAME, os_password=OS_PASSWORD, os_tenant_name=OS_TENANT )
-#     packet = {}
-#     if not timestamp:
-#         t = ceilometer.samples.list(meter_name="network.flow.bytes", limit=1)
-#         #print t
-#         timestamp = t[0].timestamp
-#         ts = iso8601.parse_date(timestamp) - datetime.timedelta(0, 5)
-#         timestamp = isotime(ts)
-#         #nowoff = datetime.datetime.now() - datetime.timedelta(3, 10)
-#         #timestamp = nowoff.isoformat()
-#         #print timestamp
-#         #timestamp = str(nowoff.year) + "-" + str(nowoff.month) + "-" + str(nowoff.day - 2) + "T" + str(nowoff.hour) + ":" + str(nowoff.minute) + ":" + str(nowoff.second) + "Z"
-# 	#print timestamp
-#     u = ceilometer.samples.list(meter_name="network.flow.bytes",  q=[{"field": "timestamp", "op": "ge", "value": timestamp}])
-#     #u = ceilometer.samples.list(meter_name="network.flow.bytes",  limit=1000)
-#     for i in u:
-#         #packet[]
-#         #print i
-#         if not i.resource_metadata["instance_id"] in packet:
-#             packet[i.resource_metadata["instance_id"]] = {}
-#         packet[i.resource_metadata["instance_id"]][i.timestamp] = json.dumps(i.resource_metadata)
-#     return json.dumps(packet)
 
 def isotime(at=None, subsecond=False):
     """Stringify time in ISO 8601 format."""
@@ -156,6 +68,7 @@ class IndexView(views.APIView):
         LOG.warning(neutron_networks)
         networks = [{'name': network.name,
                      'id': network.id,
+                     'status': network.status,
                      'subnets': [{'cidr': subnet.cidr} for subnet in network.subnets],
                      'router:external': network['router:external']}
                     for network in neutron_networks]
@@ -178,6 +91,7 @@ class IndexView(views.APIView):
                 networks.append({
                     'name': publicnet.name,
                     'id': publicnet.id,
+                    'status': publicnet.status,
                     'subnets': subnets,
                     'router:external': publicnet['router:external']})
 
@@ -222,6 +136,7 @@ class IndexView(views.APIView):
                 'key_name': server.key_name,
                 'name': server.name,
                 'status': server.status,
+                'physical_host': getattr(server, 'OS-EXT-SRV-ATTR:host'),
                 # 'os-extended-volumes:volumes_attached': getattr(server, 'os-extended-volumes:volumes_attached'),
                 'task': getattr(server, 'OS-EXT-STS:task_state')
             } for server in servers]
@@ -237,8 +152,10 @@ class IndexView(views.APIView):
         data = [{
                 'id': volume.id,
                 'name': volume.name,
+                'created': volume.created_at,
                 'attachments': volume.attachments,
                 'size': volume.size,
+                'physical_host': getattr(volume, 'os-vol-host-attr:host'),
                 'status': volume.status
         } for volume in volumes]
         return data
@@ -247,7 +164,7 @@ class IndexView(views.APIView):
         try:
             flavors = api.nova.flavor_list(request)
         except Exception:
-            LOG.warning("Something went wrong with our flavors")
+            LOG.warning("Something went wrong getting flavors")
         LOG.warning(flavors)
         data = [{
                 'name': flavor.name,
@@ -262,7 +179,7 @@ class IndexView(views.APIView):
         try:
             floating_ips = api.nova.FloatingIpManager.list(self)
         except Exception:
-            LOG.warning("We have no floaters")
+            LOG.warning("We have no floating ips")
             floating_ips = []
         LOG.warning(floating_ips)
         data = {}
@@ -384,6 +301,7 @@ class IndexView(views.APIView):
 
     def get(self, request, *args, **kwargs):
         if self.request.is_ajax() and self.request.GET.get("avosstartup", False):
+            LOG.warning("We're getting all cluster data")
             data = {
                     'flavors': self._get_flavors(request),
                     'floating_ips': self._get_floating_ips(request),
@@ -410,7 +328,7 @@ class IndexView(views.APIView):
             json_string = json.dumps(data, ensure_ascii=False)
             return HttpResponse(json_string, content_type='text/json')
         else:
-            LOG.warning("We made the wrong request, let's super it!")
+            LOG.warning("We're not asking for AVOS content, so super it.")
             return super(IndexView, self).get(request, *args, **kwargs)
          
     def post(request, *args, **kwargs):

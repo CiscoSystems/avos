@@ -8,127 +8,191 @@
 {% endblock %}
 
 {% block main %}
-
-<!-- <iframe src="http://192.168.57.20:8080/" style="height: calc(100%); width: 100%; overflow: hidden; min-height: 1022px" id="avosframe"></iframe> -->
-
-<!-- <script type='text/javascript' src='{{ STATIC_URL }}dashboard/js/jquery-latest.js'></script> -->
-<script type='text/javascript' src='{{ STATIC_URL }}dashboard/js/jquery-layout-latest.js'></script>
-<script type='text/javascript' src='{{ STATIC_URL }}dashboard/js/jquery.dataTables.js'></script>
-<script type='text/javascript' src='{{ STATIC_URL }}dashboard/js/jquery.fittext.js'></script>
-<!-- <script type='text/javascript' src="{{ STATIC_URL }}dashboard/js/d3.js"></script> -->
 <script type='text/javascript' src="{{ STATIC_URL }}dashboard/js/heatmap.js"></script>
-<!-- <script type='text/javascript' src="{{ STATIC_URL }}dashboard/js/rickshaw.js"></script> -->
-<!-- <script type='text/javascript' src="{{ STATIC_URL }}dashboard/js/bootstrap.js"></script> -->
-<!-- <script type='text/javascript' src='{{ STATIC_URL }}dashboard/js/credentials.js'></script> -->
 <script type='text/javascript' src='{{ STATIC_URL }}dashboard/js/utils.js'></script>
 <script type='text/javascript' src='{{ STATIC_URL }}dashboard/js/main.js'></script>
 
 <div class="layoutwrap" unresolved  ng-controller="avosCtrl">
-<div  class='ui-layout-container'>
+	<div  class='ui-layout-container'>
 
-	<!-- Modal -->
-<!-- 	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-	  <div class="modal-dialog">
-	    <div class="modal-content">
-	      <div class="modal-header">
-	        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-	        <img src="{{ STATIC_URL }}dashboard/img/ciscologo.png" style="float: right; margin-right: 20px; margin-top: -10px" height="45" />
-	        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
-	      </div>
-	      <div class="modal-body" id="myModalBody">
-	        
-	      </div>
-	      <div class="modal-footer">
-	        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
-	      </div>
-	    </div>
-	  </div>
-	</div> -->
+		<div id='pane-east' class='ui-layout-east ui-layout-pane ui-layout-pane-east {[{selectedNode ? "panelopen" : ""}]}' style="width: 0" ng-style="{width: selectedNode ? eastPaneWidth + 'px' : '0'}" >
+			<div id="entity-details" ng-if="selectedNode" style="width: {[{eastPaneWidth}]}px">
 
-	<!-- Large Modal -->
-<!-- 	<div class="modal fade bs-example-modal-lg" id="myLargeModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
-	  <div class="modal-dialog modal-lg" style="width: 80%; max-width: 1000px">
-	    <div class="modal-content">
-			<div class="modal-header">
-	        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-	        <img src="{{ STATIC_URL }}dashboard/img/ciscologo.png" style="float: right; margin-right: 20px; margin-top: -10px" height="45" />
-	        <h4 class="modal-title" id="myLargeModalLabel">Network Plot</h4>
-	      </div>
-	      <div class="modal-body" id="myLargeModalContent" style="text-align: center;">
-	        ...
-	      </div>
-	      <div class="modal-footer">
-	        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
-	      </div>
-	    </div>
-	  </div>
-	</div> -->
+				<button id="closepanel" type="button" class="close" aria-label="Close" ng-click="selectNode()"><span aria-hidden="true">&times;</span></button>
 
-<!-- Search -->
-<div class="btn-group" id="fake-search" ng-click="search=true; " is-active="$scope.search" click-anywhere-but-here="toggleSearch(false)" style="{[{search ? 'width: 400px' : 'width: 200px'}]}" >
-    <div class="input-group" style="width: 100%">
-    <div class="form-group has-feedback">
-      <input tabindex="0" type="text" class="form-control" placeholder="StackSearch..." ng-click="toggleSearch(true)" ng-model="searchText">
-      <i class="glyphicon glyphicon-search form-control-feedback"></i>
-	</div>
-	<div class="input-group-btn {[{search ? 'open' : ''}]}" >
-		<ul class="dropdown-menu pull-right" ng-show="search" id="entity-table" style="{[{search ? 'opacity: 1' : 'opacity: 0'}]}">
-		<!--<li ng-repeat="type in entityTypes"><a href="#"><span class="glyphicon glyphicon-{[{type.state ? 'check' : 'unchecked'}]}"> {[{type.name}]}</span></a></li> -->
-		<table cellpadding="0" cellspacing="0" border="0" class="table table-bordered table-striped datatable nomargin" >
-			<thead>
-				<tr>
-					<th></th>
-					<!-- <th>ID</th> -->
-					<th></th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr ng-repeat="entity in clusterdata | filter:searchText | orderBy:name:reverse">
-					<td style="padding-top: 5px; width: 30px">
-						<svg height="25" width="25">
-							<circle cx="12" cy="12" r="12" stroke="black" stroke-width="0" fill="grey" />
-							<svg-path-replace d="{[{entity.path}]}" fill="white" transform="scale(0.75)"></svg-path-replace>
-							<!-- <path title="{[{entity.type}]}" d="{[{entity.path}]}" fill="grey" transform="scale(0.75)"/> -->
-						</svg>
-					</td>
-					<!-- <td>{[{entity.id}]}</td> -->
-					<td>{[{entity.name}]}</td>
-				</tr>
-			</tbody>
-		  </table>
-		</ul>
-	</div>
-    </div>
-</div>
+				<h2>{[{selectedNode.name}]}</h2>
 
-<div id='pane-east' class='ui-layout-east ui-layout-pane ui-layout-pane-east' style="display: none">
-	<div id="entity-details"></div>
-</div>
+				<svg height="35" width="38">
+					<circle cx="18" cy="18" r="16" stroke="black" stroke-width="0" ng-attr-fill="{[{selectedNode.nodeColor}]}" ng-attr-stroke="{[{getServerStateColor(selectedNode.status)}]}" ng-attr-stroke-width="{[{ selectedNode.class == 'servers' ? 2 : 0 }]}"/>
+					<path ng-attr-d="{[{selectedNode.nodePath}]}" fill="white" transform="scale(1)"></path>
+				</svg>
+				<div class="btn btn-default" style="background: {[{ serverStateColor[selectedNode.status] || serverStateColor['BUILD'] }]}">{[{selectedNode.status}]}</div>
 
-<div id='pane-center' class='ui-layout-center ui-layout-pane ui-layout-pane-center ui-layout-pane-hover ui-layout-pane-center-hover ui-layout-pane-open-hover ui-layout-pane-center-open-hover'>
-	<div class="bottom">
-		<div class="btn-group">
-			<button ng-repeat="button in buttons" ng-if="button.side=='right'" id="button-toggle-{[{button.id}]}" type="button" class="btn btn-default {[{button.state ? 'active' : ''}]}" datatoggle="button" title="{[{button.title}]}" ng-click="button.funct(); button.state = !button.state"><span class="glyphicon glyphicon-{[{button.icon}]}"></span></button>
-		</div>
-	</div>
+				<hr />
 
-	<div class="bottom right">
-		<div class="btn-group">
-			<button ng-repeat="button in buttons" ng-if="button.side=='left'" id="button-toggle-{[{button.id}]}" type="button" class="btn btn-default" datatoggle="button" title="{[{button.title}]}" ng-click="button.funct()"><span class="glyphicon glyphicon-{[{button.icon}]}"></span></button>
-			<div class="btn-group dropup">
-				<button id="btn-toggle-home" type="button" class="btn btn-default dropdown-toggle" title="Show Whole Cluster" data-toggle="dropdown"><span class="glyphicon glyphicon-cog"></span></button>
-				<ul class="dropdown-menu pull-right" role="menu">
-				    <li><a href="#">Heatmap</a></li>
-				    <li><a href="#" onclick="openNetworkPlot()">Network</a></li>
-				    <li><a href="#">Graphs</a></li>
-				    <li class="divider"></li>
-				    <li><a href="#">Turn off all elements</a></li>
-				</ul>
+				<!-- Specs -->
+				<table class="table detailstable" ng-if="selectedNode.flavor">
+					<caption>VM Specs</caption>
+					<tbody>
+						<tr ng-repeat="(key, value) in selectedNode.subnets">
+							<td title="{[{key}]}"><a ng-click="selectNode()">{[{key}]}</a></td>
+							<td>{[{value}]}</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<!-- Networks -->
+				<table class="table detailstable" ng-if="selectedNode.addresses">
+					<caption>Networks</caption>
+					<thead>
+						<tr>
+							<th>Network</th>
+							<th>Addresses</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="(key, value) in selectedNode.addresses">
+							<td title="{[{key}]}"><a ng-click="selectNode(key)">{[{key}]}</a></td>
+							<td><div ng-repeat="address in value">{[{address.addr}]}</div></td>
+						</tr>
+					</tbody>
+				</table>
+
+				<!-- Volumes -->
+				<table class="table detailstable" ng-if="selectedNode.volumes.length">
+					<caption>Volumes</caption>
+					<thead>
+						<tr>
+							<th>Volume</th>
+							<th>Status</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="volume in selectedNode.volumes">
+							<td title="{[{volume.name}]}"><a ng-click="selectNode(volume)">{[{volume.name}]}</a></td>
+							<td>{[{volume.status}]}</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<!-- Volume Attachments -->
+				<table class="table detailstable" ng-if="selectedNode.attachments.length">
+					<caption>Attachments</caption>
+					<thead>
+						<tr>
+							<th>Attachment</th>
+							<th>Device</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="connection in selectedNode.attachments">
+							<td title="{[{clusterdata.lookup[connection.server_id].name}]}"><a ng-click="selectNode(clusterdata.lookup[connection.server_id])">{[{clusterdata.lookup[connection.server_id].name}]}</a></td>
+							<td>{[{connection.device}]}</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<!-- Subnets -->
+				<table class="table detailstable" ng-if="selectedNode.subnets.length">
+					<caption>Subnets</caption>
+					<thead>
+						<tr>
+							<th>Name</th>
+							<th>Range</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="(key, value) in selectedNode.subnets">
+							<td title="{[{key}]}"><a ng-click="selectNode()">{[{key}]}</a></td>
+							<td>{[{value}]}</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<!-- External Gateway -->
+				<table class="table detailstable" ng-if="selectedNode.external_gateway_info">
+					<caption>External Gateway</caption>
+					<tbody>
+						<tr>
+							<td>snat</td>
+							<td>{[{selectedNode.external_gateway_info.enable_snat ? "Enabled" : "Disabled"}]}</td>
+						</tr>
+						<tr>
+							<td>Network</td>
+							<td title="{[{ clusterdata.lookup[ selectedNode.external_gateway_info.network_id ].name }]}"><a ng-click="selectNode( clusterdata.lookup[ selectedNode.external_gateway_info.network_id ] )" >{[{ clusterdata.lookup[ selectedNode.external_gateway_info.network_id ].name }]}</td>
+						</tr>
+						<tr><td colspan="2" class="text-center">External IPs</td></tr>
+						<tr ng-repeat="ip in selectedNode.external_gateway_info.external_fixed_ips">
+							<td title="{[{ip.subnet_id}]}"><a ng-click="selectNode()">{[{ip.subnet_id}]}</a></td>
+							<td>{[{ip.ip_address}]}</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<!-- Raw -->
+				<table class="table detailstable">
+					<caption>Raw</caption>
+					<thead>
+						<tr>
+							<th>Key</th>
+							<th>Value</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="(key, value) in selectedNode" ng-if=" doWeDisplayThis(key) ">
+							<td title="{[{key}]}">{[{key}]}</td>
+							<td>{[{value}]}</td>
+						</tr>
+					</tbody>
+				</table>
+
+
+				<!-- {[{selectedNode}]} -->
+
 			</div>
 		</div>
+
+		<div id='pane-center' class='ui-layout-center ui-layout-pane ui-layout-pane-center ui-layout-pane-hover ui-layout-pane-center-hover ui-layout-pane-open-hover ui-layout-pane-center-open-hover' style="display: none;" ng-style="{display: 'block'}">
+
+		</div>
+
+		<!-- Search -->
+		<div class="btn-group" id="fake-search" ng-click="search=true; " is-active="$scope.search" click-anywhere-but-here="toggleSearch(false)" style="{[{search ? 'width: 300px' : 'width: 200px'}]}; margin-right: {[{selectedNode ? eastPaneWidth : '0'}]}px; " >
+			<div class="input-group" style="width: 100%">
+				<div class="form-group has-feedback">
+					<input tabindex="0" type="text" class="form-control" placeholder="StackSearch..." ng-click="toggleSearch(true)" ng-model="searchText">
+		  			<i class="glyphicon glyphicon-search form-control-feedback" style="top: auto"></i>
+					<div class="input-group-btn {[{search ? 'open' : ''}]}" ng-show="search" id="entity-table" style="{[{search ? 'opacity: 1' : 'opacity: 0'}]}">
+						<table cellpadding="0" cellspacing="0" border="0" class="table table-bordered table-striped datatable nomargin" >
+							<tbody>
+								<tr ng-repeat="node in clusterdata.nodes | filter:searchText | limitTo: 10">
+									<td style="padding: 3px">
+										<svg height="35" width="38">
+											<circle cx="18" cy="18" r="16" stroke="black" stroke-width="0" ng-attr-fill="{[{node.nodeColor}]}" ng-attr-stroke="{[{getServerStateColor(node.status)}]}" ng-attr-stroke-width="{[{ node.class == 'servers' ? 2 : 0 }]}"/>
+											<path ng-attr-d="{[{node.nodePath}]}" fill="white" transform="scale(1)"></path>
+										</svg>
+									</td>
+									<!-- <td>{[{entity.id}]}</td> -->
+									<td>{[{node.name | cut:true:35}]}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div id="bottom-right" class="bottom right" style="margin-right: {[{selectedNode ? eastPaneWidth + 10 : '10'}]}px">
+			<button ng-if="hintsOn" id="hint" type="button" class="btn btn-default btn-trans" title="{[{button.title}]}" ng-click="currentHint = getHint()" ><glyphicon icon="info-sign"></glyphicon> Tip: <span ng-bind="currentHint"></span><div class="arrow"></div></button>
+			<div class="btn-group bot">
+				<button ng-repeat="button in buttons" ng-if="button.side=='left'" id="button-toggle-{[{button.id}]}" type="button" class="btn btn-default" data-toggle="{[{button.toggle || 'button'}]}" data-placement="left" data-content="Hello" title="{[{button.title}]}" ng-click="button.funct()"><span class="glyphicon glyphicon-{[{button.icon}]}"></span></button>
+			</div>
+			<div class="btn-group-vertical bot">
+				<button ng-repeat="button in buttons" ng-if="button.side=='right'" id="button-toggle-{[{button.id}]}" type="button" class="btn btn-default {[{button.state ? 'active' : ''}]}" datatoggle="button" title="{[{button.title}]}" ng-click="button.funct(); button.state = !button.state"><span class="glyphicon glyphicon-{[{button.icon}]}"></span></button>
+			</div>
+		</div>
+
 	</div>
 </div>
-</div>
-</div>
-    {{ table.render }}
+	{{ table.render }}
 {% endblock %}
