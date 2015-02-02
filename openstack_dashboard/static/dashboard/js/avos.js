@@ -1,7 +1,7 @@
 /*
  * Main AVOS Script
  *
- * Copyright (c) 2014 Cisco Systems 
+ * Copyright (c) 2015 Cisco Systems 
  *   Alex Holden <ajonasho@cisco.com>
  *
  */
@@ -59,8 +59,8 @@ avos = hz.controller("avosCtrl", function($scope, $http, $document, $filter){
 		// {'id':'ntwk', 'title': 'Toggle Networks', 'funct': function() { toggleNetworks() }, 'icon': 'globe', 'side': 'right'},
 		// {'id':'alert', 'title': 'Toggle Alerts', 'funct': function() { toggleAlerts() }, 'icon': 'bell', 'side': 'right'},
 		// {'id':'edit', 'title': 'Edit Mode', 'funct': function() { toggleEdit() }, 'icon': 'edit', 'side': 'right'},
-		{'id':'hints', 'title': 'Toggle Hints', 'funct': function() { $scope.hintsOn = !$scope.hintsOn; $scope.currentHint = $scope.getHint()}, 'icon': 'question-sign', 'side': 'left', toggle: 'popover'},
-		{'id':'zoomr', 'title': 'Reset View', 'funct': function() { $scope.resetCanvas() }, 'icon': 'screenshot', 'side': 'left'},
+		{'id':'zoomr', 'title': 'Reset View', 'funct': function() { $scope.resetCanvas() }, 'icon': 'screenshot', 'side': 'right'},
+		{'id':'hints', 'title': 'Toggle Hints (Click the hint to cycle a new one)', 'funct': function() { $scope.hintsOn = !$scope.hintsOn; $scope.currentHint = $scope.getHint()}, 'icon': 'question-sign', 'side': 'right', 'state': $scope.hintsOn},
 		// {'id':'dev', 'title': 'Developer Mode', 'funct': function() { $scope.developerMode(50) }, 'icon': 'thumbs-up', 'side': 'left'},
 		// {'id':'legend', 'title': 'Help', 'funct': function() { $scope.getOpenStackData(null, "avosstartup") }, 'icon': 'question-sign', 'side': 'left'},
 		// {'id':'settings', 'title': 'Settings', 'funct': function() { loadSettings() }, 'icon': 'wrench', 'side': 'left'}
