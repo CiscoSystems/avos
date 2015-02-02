@@ -108,7 +108,9 @@ avos = hz.controller("avosCtrl", function($scope, $http, $document, $filter){
 		node.nodePath = $scope.nodePaths[node.nodePathName]
 		node.nodePathOffset = $scope.getIconOffset(node.class, node);
 		node.nodePathScale = $scope.getIconScale(node.class, node)
-		node.metrics = {}
+		if (!node.metrics){
+			node.metrics = {}
+		}
 
 		if (typeKey == 'network') {}
 		else if (typeKey == 'servers') {
@@ -473,8 +475,8 @@ avos = hz.controller("avosCtrl", function($scope, $http, $document, $filter){
 
 	$scope.updateHeatmapReal = function(meter, type) {
 		heatmap.store.setDataSet({ max: 100, data: []}); // Wipe the slate clean
+		var heatData = [];
 		if ($scope.heatMapVisible) {
-			// console.log("we're updating our heatmap!")
 			if (!type) {type = "servers"}; if (!meter) {meter = "cpu_util"}
 			var nodes = $.grep($scope.clusterdata.nodes, function(e) { return e.class == type } )
 			for (var i in nodes) {
@@ -489,9 +491,11 @@ avos = hz.controller("avosCtrl", function($scope, $http, $document, $filter){
 					var nodeid = "#circle-" + node.id;
 					var node_heat_x = $(nodeid).position()['left'] + offsetx;//node.x// + offsetx;
 					var node_heat_y = $(nodeid).position()['top'] + offsetx;//node.y// + offsety;
-					heatmap.store.addDataPoint(node_heat_x, node_heat_y, value); //+ rand);
+					heatData.push({x: node_heat_x, y: node_heat_y, value: value})
+					// heatmap.store.addDataPoint(node_heat_x, node_heat_y, value); //+ rand);
 				}
 			}
+			heatmap.store.setDataSet({ max: 100, data: heatData});
 			setTimeout($scope.updateHeatmapReal, 1000);
 		}
 	}
@@ -576,6 +580,9 @@ avos = hz.controller("avosCtrl", function($scope, $http, $document, $filter){
 				// Add instances
 				var instance_id = inventResourceID();
 				var instance = {"status":"ACTIVE","addresses":{ netx:[{"OS-EXT-IPS-MAC:mac_addr":"fa:16:3e:8b:b2:8f","version":4,"addr":"172.24.4.5","OS-EXT-IPS:type":"fixed"}]},"key_name":null,"image":{"id": image_id,"links":[{"href":"http://192.168.160.181:8774/c65e1534120a47baa6499e4fd91dd990/images/5cb1c5ab-c9b6-4e11-9e2a-f9fb2f15a095","rel":"bookmark"}]},"physical_host":"ubuntu","flavor":{"id":"42","links":[{"href":"http://192.168.160.181:8774/c65e1534120a47baa6499e4fd91dd990/flavors/42","rel":"bookmark"}]},"id": instance_id,"task":null,"console":"vnc","name":"inst-" + instance_id,"created":"2015-01-31T17:46:18Z","url":"/project/instances/" + instance_id + "/"}
+				instance.metrics = {}
+				instance.metrics.cpu_util = []
+				instance.metrics.cpu_util.push((20 * Math.random()))
 				$scope.addNodeToDash(instance, 'servers', 'Server', true)
 				var port_id = inventResourceID();
 				var port = {"status":"ACTIVE","network_id":network_id,"url":"/project/networks/ports/" + port_id + "/detail","device_owner":"network:router_gateway","fixed_ips":[{"subnet_id":"c6390064-59af-45e0-8a79-6dcaa5822a68","ip_address":"172.24.4.6"}],"id":port_id,"device_id":instance_id}
