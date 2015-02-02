@@ -1,3 +1,48 @@
+             _  ____   ____   ___     ______   
+            / \|_  _| |_  _|.'   `. .' ____ \  
+           / _ \ \ \   / / /  .-.  \| (___ \_| 
+          / ___ \ \ \ / /  | |   | | _.____`.  
+        _/ /   \ \_\ ' /   \  `-'  /| \____) | 
+       |____| |____|\_/     `.___.'  \______.' 
+       Analytics & Visualisation on OpenStack
+
+Cisco's Project AVOS attempts to provide a feature rich and intuitive analytics
+dashboard for OpenStack clouds giving developers and operators quick insight into
+your clouds configuration, state, performance and faults. 
+
+Install Instructions
+-----------
+
+The current master branch is a fork of stable/juno horizon with AVOS installed.
+For now, the standlone version (working outside horizon) has halted development,
+though is still available from the branch 'standalone'.
+
+Simply clone AVOS in place of a horizon install, and everything will work.
+
+To access AVOS, log into horizon and see the panel under Admin > System > AVOS.
+
+Current Limitations: 
+-----------
+
+Installation of AVOS currently requires Ceilometer and Neutron, future releases 
+will allow for a smart feature rollback that will work without these.
+
+The Network plot requires modifications to ceilometer not yet released. This 
+Feature will not work, and has temporarily been disabled, but the rest of AVOS will.
+
+We've been using Ceilometer intervals of 5 seconds, by default Ceilometer stores 
+data every 10 minutes. Don't expect your heatmaps to update often unless you change 
+this in your publisher .yaml files.
+
+Questions
+-----------
+
+Any questions/bugs/feature requests? File an issue or Get in touch:
+
+Alex Holden (ajonasho@cisco.com, a@lexholden.com)
+
+----------------------------------------------
+
 =============================
 Horizon (OpenStack Dashboard)
 =============================
