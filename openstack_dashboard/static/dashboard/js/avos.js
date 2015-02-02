@@ -13,6 +13,9 @@ hz.config(function($interpolateProvider) {
 	$interpolateProvider.endSymbol('}]}');
 });
 
+var offsetx = 18;
+var offsety = 18;
+
 avos = hz.controller("avosCtrl", function($scope, $http, $document, $filter){
 
 	$scope.clusterdata = {'nodes': [], 'edges': [], 'ports': [], 'lookup': {}, 'images': [], 'flavors': [], 'meters': [] } // What defines our D3 Network of VMs, Volumes etc
@@ -58,6 +61,7 @@ avos = hz.controller("avosCtrl", function($scope, $http, $document, $filter){
 		// {'id':'edit', 'title': 'Edit Mode', 'funct': function() { toggleEdit() }, 'icon': 'edit', 'side': 'right'},
 		{'id':'hints', 'title': 'Toggle Hints', 'funct': function() { $scope.hintsOn = !$scope.hintsOn; $scope.currentHint = $scope.getHint()}, 'icon': 'question-sign', 'side': 'left', toggle: 'popover'},
 		{'id':'zoomr', 'title': 'Reset View', 'funct': function() { $scope.resetCanvas() }, 'icon': 'screenshot', 'side': 'left'},
+		// {'id':'dev', 'title': 'Developer Mode', 'funct': function() { $scope.developerMode(50) }, 'icon': 'thumbs-up', 'side': 'left'},
 		// {'id':'legend', 'title': 'Help', 'funct': function() { $scope.getOpenStackData(null, "avosstartup") }, 'icon': 'question-sign', 'side': 'left'},
 		// {'id':'settings', 'title': 'Settings', 'funct': function() { loadSettings() }, 'icon': 'wrench', 'side': 'left'}
 	];
@@ -74,7 +78,7 @@ avos = hz.controller("avosCtrl", function($scope, $http, $document, $filter){
 	 *	@param data		Array of servers to load
 	 */
 	$scope.loadInitialServers = function(data) {
-		// console.log(data);
+		// console.log(data);console.log(JSON.stringify(rou));
 		data.images.forEach(function(img) { img.path = $scope.getNodePath('images', img); $scope.clusterdata.images.push(img); $scope.clusterdata.lookup[img.id] = img });
 		data.networks.forEach(function(net) { $scope.addNodeToDash(net, 'networks', 'Network', true) });
 		data.servers.forEach(function(serv) { $scope.addNodeToDash(serv, 'servers', 'Server', true) });
@@ -293,6 +297,7 @@ avos = hz.controller("avosCtrl", function($scope, $http, $document, $filter){
 					'drupal': {x: 11, y: 14},
 					'hadoop': {x: 13.3, y: 10},
 					'magento': {x: 12, y: 14},
+					'port': {x: 12, y: 10},
 					'wordpress': {x: 14.748858, y: 14.748858}
 				}
 
@@ -501,7 +506,7 @@ avos = hz.controller("avosCtrl", function($scope, $http, $document, $filter){
 			// myLayout.slideOpen('east');
 		}
 		$scope.selectedNode = d;
-		// console.log($scope.selectedNode);
+		console.log($scope.selectedNode);
 	}
 
 	$scope.toggleSearch = function(state) {
@@ -521,6 +526,74 @@ avos = hz.controller("avosCtrl", function($scope, $http, $document, $filter){
 		innervis.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")");
 		offsetx = 18 * d3.event.scale;
 		offsety = 18 * d3.event.scale;
+	}
+
+	$scope.developerMode = function(size) {
+		for (var i in $scope.imageList) {
+			var img = { id: inventResourceID(), name: $scope.imageList[i] }
+			img.path = $scope.getNodePath('images', img);
+			 $scope.clusterdata.images.push(img); 
+			 $scope.clusterdata.lookup[img.id] = img;
+		}
+		$scope.createRandomCluster(size)
+	}
+
+	$scope.createRandomCluster = function(size) {
+		if (!size) {size = 50}
+
+		// Public Network
+		var publicnetwork_id = inventResourceID();
+		var publicnetwork = {"status":"ACTIVE","subnets":[{"cidr":"1.1.1.1.1.1.1.1"}],"name": "publicnet-" + publicnetwork_id,"router:external":true,"url":"/project/networks/" + publicnetwork_id + "/detail","id":publicnetwork_id};
+		$scope.addNodeToDash(publicnetwork, 'networks', 'Network', true);
+
+		// var image_ids = Object
+		var first = true;
+		while (size > 0) {
+			// Networks
+			var network_id = inventResourceID();
+			var network = {"status":"ACTIVE","subnets":[],"name":"net-" + network_id,"router:external":false,"url":"/project/networks/" + network_id + "/detail","id": network_id};
+			$scope.addNodeToDash(network, 'networks', 'Network', true);
+
+			if (Math.random() > 0.2 || first == true) {
+				// Add New Router
+				var router_id = inventResourceID();
+				var router = {"status":"ACTIVE","external_gateway_info":{"network_id":network_id,"enable_snat":true,"external_fixed_ips":[{"subnet_id":"c6390064-59af-45e0-8a79-6dcaa5822a68","ip_address":"172.24.4.7"}]},"url":"/project/routers/" + router_id + "/","id": router_id,"name":"router-" + router_id}
+				$scope.addNodeToDash(router, 'routers', 'Router', true);
+				// Connect router to the public network
+				var port_id = inventResourceID();
+				var port = {"status":"ACTIVE","network_id": publicnetwork_id,"url":"/project/networks/ports/" + port_id + "/detail","device_owner":"network:router_gateway","fixed_ips":[{"subnet_id":"c6390064-59af-45e0-8a79-6dcaa5822a68","ip_address":"172.24.4.6"}],"id":port_id,"device_id":router_id}
+				$scope.addLinkToDash(port, 'ports', 'Port', true)
+				first = false;
+			}
+
+			// Connect the new network to our router
+			var port_id = inventResourceID();
+			var port = {"status":"ACTIVE","network_id":network_id,"url":"/project/networks/ports/" + port_id + "/detail","device_owner":"network:router_gateway","fixed_ips":[{"subnet_id":"c6390064-59af-45e0-8a79-6dcaa5822a68","ip_address":"172.24.4.6"}],"id":port_id,"device_id":router_id}
+			$scope.addLinkToDash(port, 'ports', 'Port', true);
+
+			var image_id = $scope.clusterdata.images[randBetween(0, $scope.clusterdata.images.length)].id;
+			for (var i = Math.random() * 10 + 3; i > 0; i--) {
+				// Add instances
+				var instance_id = inventResourceID();
+				var instance = {"status":"ACTIVE","addresses":{ netx:[{"OS-EXT-IPS-MAC:mac_addr":"fa:16:3e:8b:b2:8f","version":4,"addr":"172.24.4.5","OS-EXT-IPS:type":"fixed"}]},"key_name":null,"image":{"id": image_id,"links":[{"href":"http://192.168.160.181:8774/c65e1534120a47baa6499e4fd91dd990/images/5cb1c5ab-c9b6-4e11-9e2a-f9fb2f15a095","rel":"bookmark"}]},"physical_host":"ubuntu","flavor":{"id":"42","links":[{"href":"http://192.168.160.181:8774/c65e1534120a47baa6499e4fd91dd990/flavors/42","rel":"bookmark"}]},"id": instance_id,"task":null,"console":"vnc","name":"inst-" + instance_id,"created":"2015-01-31T17:46:18Z","url":"/project/instances/" + instance_id + "/"}
+				$scope.addNodeToDash(instance, 'servers', 'Server', true)
+				var port_id = inventResourceID();
+				var port = {"status":"ACTIVE","network_id":network_id,"url":"/project/networks/ports/" + port_id + "/detail","device_owner":"network:router_gateway","fixed_ips":[{"subnet_id":"c6390064-59af-45e0-8a79-6dcaa5822a68","ip_address":"172.24.4.6"}],"id":port_id,"device_id":instance_id}
+				$scope.addLinkToDash(port, 'ports', 'Port', true);
+				size--;
+				if (Math.random() > 0.4) {
+					// Add Volumes
+					for (var j = Math.random() * 5; j > 1; j--) {
+						var volume_id = inventResourceID();
+						var volume = {"status":"in-use","attachments":[{"device":"/dev/vdb","server_id":instance_id,"volume_id":volume_id,"host_name":null,"id":volume_id}],"created":"2015-01-31T17:46:29.000000","name":"vol-" + volume_id,"physical_host":"ubuntu@lvmdriver-1#lvmdriver-1","id":volume_id,"size":1};
+						$scope.addNodeToDash(volume, 'volumes', 'Volume', true); 
+						$scope.addLinkToDash(volume, 'volumes', 'Volume', true);
+					}
+				}
+			}
+
+		}
+
 	}
 
 });
