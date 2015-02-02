@@ -10,6 +10,8 @@ Cisco's Project AVOS attempts to provide a feature rich and intuitive analytics
 dashboard for OpenStack clouds giving developers and operators quick insight into
 your clouds configuration, state, performance and faults. 
 
+![AVOS Dashboard](/openstack_dashboard/static/screens/screen1.png "AVOS")
+
 Install Instructions
 -----------
 
