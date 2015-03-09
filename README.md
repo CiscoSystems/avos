@@ -26,11 +26,15 @@ To access AVOS, log into horizon and see the panel under Admin > System > AVOS.
 Current Limitations: 
 -----------
 
+This is a beta release, AVOS still has some UX glitches, needs full cross browser
+testing and has a whole load of features still to come in future releases.
+
 Installation of AVOS currently requires Ceilometer and Neutron, future releases 
 will allow for a smart feature rollback that will work without these.
 
-The Network plot requires modifications to ceilometer not yet released. This 
-Feature will not work, and has temporarily been disabled, but the rest of AVOS will.
+The Network plot (with VM to VM traffic flows) requires modifications to ceilometer 
+not yet released. This feature will not work, and has temporarily been disabled, 
+but the rest of AVOS will work.
 
 We've been using Ceilometer intervals of 5 seconds, by default Ceilometer stores 
 data every 10 minutes. Don't expect your heatmaps to update often unless you change 
