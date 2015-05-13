@@ -23,12 +23,12 @@ Simply clone AVOS in place of a horizon install, and everything will work.
 
 Alternately, to point a fresh clone of this repo at another instance of OpenStack:
 
-0) Make sure you have the dependencies for horizon installed first: (e.g. on ubuntu run "sudo apt-get install apache2 libapache2-mod-wsgi memcached python-memcache" )
-1) Clone AVOS fresh (i.e. 'git clone https://github.com/ciscosystems/avos.git' )
-2) Copy openstack_dashboard/local/local_settings.py.example to openstack_dashboard/local/local_settings.py
-3) Edit openstack_dashboard/local/local_settings.py, find the line that defines OPENSTACK_HOST and change the IP to point to your control node.
-4) From the root folder run: python manage.py runserver xx.xx.xx.xx:xx (passing the IP and port you want to run horizon on)
-5) access that URL in browser, login in and select the AVOS panel from the admin section of the Horizon menu.
+0. Make sure you have the dependencies for horizon installed first: (e.g. on ubuntu run "sudo apt-get install apache2 libapache2-mod-wsgi memcached python-memcache" )
+1. Clone AVOS fresh (i.e. 'git clone https://github.com/ciscosystems/avos.git' )
+2. Copy openstack_dashboard/local/local_settings.py.example to openstack_dashboard/local/local_settings.py
+3. Edit openstack_dashboard/local/local_settings.py, find the line that defines OPENSTACK_HOST and change the IP to point to your control node.
+4. From the root folder run: python manage.py runserver xx.xx.xx.xx:xx (passing the IP and port you want to run horizon on)
+5. access that URL in browser, login in and select the AVOS panel from the admin section of the Horizon menu.
 
 To access AVOS, log into horizon and see the panel under Admin > System > AVOS.
 
